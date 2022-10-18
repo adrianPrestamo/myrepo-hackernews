@@ -11,7 +11,7 @@
 
 namespace App\Entity;
 
-use Doctrine\DBAL\Types\Types;
+//use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use function Symfony\Component\String\u;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -41,7 +41,7 @@ class Comment
 
     #[ORM\Column(type: 'text')]
     #[Assert\NotBlank(message: 'comment.blank')]
-    #[Assert\Length(min: 5, minMessage: 'comment.too_short', max: 10000, maxMessage: 'comment.too_long')]
+    #[Assert\Length(min: 5, max: 10000, minMessage: 'comment.too_short', maxMessage: 'comment.too_long')]
     private ?string $content = null;
 
     #[ORM\Column(type: 'datetime')]
