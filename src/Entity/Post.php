@@ -80,6 +80,9 @@ class Post
     #[Assert\Count(max: 4, maxMessage: 'post.too_many_tags')]
     private Collection $tags;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $link = null;
+
     public function __construct()
     {
         $this->publishedAt = new \DateTime();
@@ -187,5 +190,17 @@ class Post
     public function getTags(): Collection
     {
         return $this->tags;
+    }
+
+    public function getLink(): ?string
+    {
+        return $this->link;
+    }
+
+    public function setLink(?string $link): self
+    {
+        $this->link = $link;
+
+        return $this;
     }
 }
