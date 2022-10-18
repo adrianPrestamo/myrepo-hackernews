@@ -50,7 +50,6 @@ class PostRepository extends ServiceEntityRepository
             $qb->andWhere(':tag MEMBER OF p.tags')
                 ->setParameter('tag', $tag);
         }
-
         return (new Paginator($qb))->paginate($page);
     }
 
