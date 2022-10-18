@@ -21,6 +21,7 @@
         "doctrine/orm": "^2.10",
         "league/commonmark": "^2.1",
         "sensio/framework-extra-bundle": "^6.2",
+        "staabm/annotate-pull-request-from-checkstyle": "^1.8",
         "symfony/apache-pack": "^1.0",
         "symfony/asset": "^6.1",
         "symfony/console": "^6.1",
@@ -48,6 +49,7 @@
         "twig/markdown-extra": "^3.3"
     },
     "require-dev": {
+        "roave/security-advisories": "dev-latest",
         "symfony/var-dumper": "6.1.*",
         "dama/doctrine-test-bundle": "^7.0",
         "doctrine/doctrine-fixtures-bundle": "^3.4",

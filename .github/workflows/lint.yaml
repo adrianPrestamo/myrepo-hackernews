@@ -17,11 +17,13 @@ jobs:
             - name: "Checkout code"
               uses: actions/checkout@v2
 
-            - name: PHP-CS-Fixer
-              uses: docker://oskarstark/php-cs-fixer-ga
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
               with:
-                  args: --diff --dry-run
-
+                php-version: '8.1'
+                tools: cs2pr
+            - name: ✅ Run PHP Linting
+              run: php-cs-fixer fix -vvv --dry-run --format=checkstyle | cs2pr
     linters:
         name: Linters
         runs-on: ubuntu-latest
