@@ -8,7 +8,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <title>{% block title %}Symfony Demo application{% endblock %}</title>
+        <title>{% block title %}Hacker News{% endblock %}</title>
         <link rel="alternate" type="application/rss+xml" title="{{ 'rss.title'|trans }}" href="{{ path('blog_rss') }}">
 
         {#
@@ -119,15 +119,15 @@
                         {% block main %}{% endblock %}
                     </div>
 
+                    {% block sidebar %}
                     <div id="sidebar" class="col-sm-3">
-                        {% block sidebar %}
                             {{ render_esi(controller('Symfony\\Bundle\\FrameworkBundle\\Controller\\TemplateController::templateAction', {
                                 'template': 'blog/about.html.twig',
                                 'sharedAge': 600,
                                 '_locale': app.request.locale
                             })) }}
-                        {% endblock %}
                     </div>
+                    {% endblock %}
                 </div>
             {% endblock %}
         </div>
