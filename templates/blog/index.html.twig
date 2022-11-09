@@ -1,11 +1,7 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}
-    New Links | {{ parent() }}
-{% endblock title %}
-
-
 {% block body_id 'blog_index' %}
+
 
 {% block main %}
     {% for post in paginator.results %}
