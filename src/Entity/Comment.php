@@ -11,6 +11,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use function Symfony\Component\String\u;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -50,9 +52,16 @@ class Comment
     #[ORM\JoinColumn(nullable: false)]
     private ?User $author = null;
 
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'replies')]
+    private ?self $parent_comment = null;
+
+    #[ORM\OneToMany(mappedBy: 'parent_comment', targetEntity: self::class)]
+    private Collection $replies;
+
     public function __construct()
     {
         $this->publishedAt = new \DateTime();
+        $this->replies = new ArrayCollection();
     }
 
     #[Assert\IsTrue(message: 'comment.is_spam')]
@@ -106,5 +115,47 @@ class Comment
     public function setPost(Post $post): void
     {
         $this->post = $post;
+    }
+
+    public function getParentComment(): ?self
+    {
+        return $this->parent_comment;
+    }
+
+    public function setParentComment(?self $parent_comment): self
+    {
+        $this->parent_comment = $parent_comment;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, self>
+     */
+    public function getReplies(): Collection
+    {
+        return $this->replies;
+    }
+
+    public function addReply(self $reply): self
+    {
+        if (!$this->replies->contains($reply)) {
+            $this->replies->add($reply);
+            $reply->setParentComment($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReply(self $reply): self
+    {
+        if ($this->replies->removeElement($reply)) {
+            // set the owning side to null (unless already changed)
+            if ($reply->getParentComment() === $this) {
+                $reply->setParentComment(null);
+            }
+        }
+
+        return $this;
     }
 }

@@ -137,7 +137,9 @@ class BlogController extends AbstractController
         //
         // You can also leverage Symfony's 'dd()' function that dumps and
         // stops the execution
-
+        if($post == null){
+            return $this->redirectToRoute('post_new');
+        }
         return $this->render('blog/post_show.html.twig', ['post' => $post]);
     }
 
