@@ -30,6 +30,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+
 /**
  * Controller used to manage blog contents in the public part of the site.
  *
@@ -181,7 +182,7 @@ class BlogController extends AbstractController
      * to constraint the HTTP methods each controller responds to (by default
      * it responds to all methods).
      */
-    #[Route('/posts/new', methods: ['GET', 'POST'], name: 'admin_post_new')]
+    #[Route('/new', methods: ['GET', 'POST'], name: 'post_new')]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
