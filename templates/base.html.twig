@@ -75,12 +75,44 @@
                                     <a href="{{ path('blog_search') }}"> <i class="fa fa-search"></i> {{ 'menu.search'|trans }}</a>
                                 </li>
 
+                                {% if app.user %}
+                                    <li class="dropdown">
+                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="user">
+                                            <i class="fa fa-user" aria-hidden="true"></i>
+                                            <span class="caret"></span>
+                                            <span class="sr-only">{{ app.user.fullname }}</span>
+                                        </a>
+                                        <ul class="dropdown-menu user" role="menu" aria-labelledby="user">
+                                            <li>
+                                                <a href="{{ path('user_edit') }}">
+                                                    <i class="fa fa-edit" aria-hidden="true"></i> {{ 'menu.user'|trans }}
+                                                </a>
+                                            </li>
+                                            <li class="divider"></li>
+                                            <li>
+                                                <a href="{{ logout_path() }}">
+                                                    <i class="fa fa-sign-out" aria-hidden="true"></i> {{ 'menu.logout'|trans }}
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                {% endif %}
 
-                            </ul>
-
-                            <ul class="nav navbar-nav navbar-right">
                                 <li>
-                                    <a href="{{ path('security_login') }}"> <i class="fa fa-sign-in"></i>login</a>
+                                    <a href="{{ path('security_login') }}"> <i class="fa fa-sign-in"></i> {{ 'Login' }}</a>
+                                </li>
+
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="locales">
+                                        <i class="fa fa-globe" aria-hidden="true"></i>
+                                        <span class="caret"></span>
+                                        <span class="sr-only">{{ 'menu.choose_language'|trans }}</span>
+                                    </a>
+                                    <ul class="dropdown-menu locales" role="menu" aria-labelledby="locales">
+                                        {% for locale in locales() %}
+                                            <li {% if app.request.locale == locale.code %}aria-checked="true" class="active"{% else %}aria-checked="false"{% endif %} role="menuitem"><a href="{{ path(app.request.get('_route', 'blog_index'), app.request.get('_route_params', [])|merge({_locale: locale.code})) }}">{{ locale.name|capitalize }} <small>{{ locale.code[0:2] }}</small></a></li>
+                                        {% endfor %}
+                                    </ul>
                                 </li>
                             </ul>
                         </div>
