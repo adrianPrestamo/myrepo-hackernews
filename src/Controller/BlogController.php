@@ -16,9 +16,11 @@ use App\Entity\Post;
 use App\Event\CommentCreatedEvent;
 use App\Form\CommentType;
 use App\Form\PostType;
+use App\Repository\CommentRepository;
 use App\Repository\PostRepository;
 use App\Repository\TagRepository;
 use App\Security\PostVoter;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -29,7 +31,7 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * Controller used to manage blog contents in the public part of the site.
@@ -122,7 +124,7 @@ class BlogController extends AbstractController
      * See https://symfony.com/doc/current/bundles/SensioFrameworkExtraBundle/annotations/converters.html
      */
     #[Route('/posts/{slug}', methods: ['GET'], name: 'blog_post')]
-    public function postShow(Post $post): Response
+    public function postShow(Post $post, CommentRepository $commentRepository): Response
     {
         // Symfony's 'dump()' function is an improved version of PHP's 'var_dump()' but
         // it's not available in the 'prod' environment to prevent leaking sensitive information.
@@ -137,9 +139,13 @@ class BlogController extends AbstractController
         //
         // You can also leverage Symfony's 'dd()' function that dumps and
         // stops the execution
-        if($post == null){
-            return $this->redirectToRoute('post_new');
-        }
+
+        //$comments = new ArrayCollection($commentRepository->findBy(['post' => $post]));
+        //$post->setComments($comments);
+//        foreach ($post->getComments() as $comment){
+//            dd($comment);
+//        }
+        //dd($post);
         return $this->render('blog/post_show.html.twig', ['post' => $post]);
     }
 

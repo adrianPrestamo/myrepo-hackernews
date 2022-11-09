@@ -11,11 +11,12 @@
 
 namespace App\Entity;
 
+use App\Repository\CommentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use function Symfony\Component\String\u;
 use Symfony\Component\Validator\Constraints as Assert;
+use function Symfony\Component\String\u;
 
 /**
  * Defines the properties of the Comment entity to represent the blog comments.
@@ -27,7 +28,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Ryan Weaver <weaverryan@gmail.com>
  * @author Javier Eguiluz <javier.eguiluz@gmail.com>
  */
-#[ORM\Entity]
+
+#[ORM\Entity(repositoryClass: CommentRepository::class)]
 #[ORM\Table(name: 'symfony_demo_comment')]
 class Comment
 {

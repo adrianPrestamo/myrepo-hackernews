@@ -36,26 +36,56 @@
     <h3>
         <i class="fa fa-comments" aria-hidden="true"></i> {{ 'post.num_comments'|trans({ 'count': post.comments|length }) }}
     </h3>
-
-    {% for comment in post.comments %}
-        <div class="row post-comment">
-            <a name="comment_{{ comment.id }}"></a>
-            <h4 class="col-sm-3">
-                <strong>{{ comment.author.fullName }}</strong> {{ 'post.commented_on'|trans }}
-                {# it's not mandatory to set the timezone in localizeddate(). This is done to
-                   avoid errors when the 'intl' PHP extension is not available and the application
-                   is forced to use the limited "intl polyfill", which only supports UTC and GMT #}
-                <strong>{{ comment.publishedAt|format_datetime('medium', 'short', '', 'UTC') }}</strong>
-            </h4>
-            <div class="col-sm-9">
-                {{ comment.content|markdown_to_html|sanitize_html }}
+    {% macro renderComment(comment) %}
+        {% import _self as self %}
+            <div class="row post-comment">
+                <a name="comment_{{ comment.id }}"></a>
+                <h4 class="col-sm-3">
+                    <strong>{{ comment.author.fullName }}</strong> {{ 'post.commented_on'|trans }}
+                    {# it's not mandatory to set the timezone in localizeddate(). This is done to
+                           avoid errors when the 'intl' PHP extension is not available and the application
+                           is forced to use the limited "intl polyfill", which only supports UTC and GMT #}
+                    <strong>{{ comment.publishedAt|format_datetime('medium', 'short', '', 'UTC') }}</strong>
+                </h4>
+                <div class="col-sm-9">
+                    {{ comment.content|markdown_to_html|sanitize_html }}
+                </div>
             </div>
-        </div>
-    {% else %}
+    {% endmacro %}
+
+    {% from _self import renderComment %}
+    {% from _self import recursiveComment %}
+
+    {% macro recursiveComment(comments) %}
+        {% import _self as self %}
+        <li >
+            hola
+        </li>
+            {% for reply in comments.replies() %}
+                {% if reply.replies|length > 0 %}
+                    {{ self.recursiveComment(reply.replies) }}
+                {% endif %}
+            {% endfor %}
+    {% endmacro %}
+
+    {% from _self import recursiveComment %}
+
+    {{ recursiveComment(post.getComments()) }}
+    <li>
+        AFTER RECURSIVE
+    </li>
+    {% for comment in post.comments %}
+        renderComment(comment)
+    {% endfor %}
+
+
+
+    {% if post.comments|length == 0 %}
         <div class="post-comment">
             <p>{{ 'post.no_comments'|trans }}</p>
         </div>
-    {% endfor %}
+    {% endif %}
+
 {% endblock %}
 
 {% block sidebar %}
