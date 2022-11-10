@@ -7,7 +7,9 @@
 
     <p class="post-metadata">
         <span class="metadata"><i class="fa fa-calendar"></i> {{ post.publishedAt|format_datetime('long', 'medium', '', 'UTC') }}</span>
-        <span class="metadata"><i class="fa fa-user"></i> {{ post.author.fullName }}</span>
+        <a href="{{ path('user_show', {username: post.author.username}) }}">
+            <span class="metadata"><i class="fa fa-user"></i> {{ post.author.fullName }}</span>
+        </a>
     </p>
 
     {{ post.content|markdown_to_html|sanitize_html }}
