@@ -163,16 +163,18 @@ class BlogController extends AbstractController
 
     #[Route('/posts/{slug}/vote', methods: ['GET'], name: 'vote_post')]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function postVote(Post $post, CommentRepository $commentRepository): Response
+    public function postVote(Post $post,  EntityManagerInterface $entityManager): Response
     {
-        $comments = new ArrayCollection($commentRepository->findBy(['post' => $post, 'parentComment' => null]));
+        $post->addVote($this->getUser());
+        $post->addUserIdVotes($this->getUser()->getId());
 
-        $post->setComments($comments);
-        //dd($post);
-        $response = new Response();
-        $response->setStatusCode(201);
+        $entityManager->persist($post);
+        $entityManager->flush();
 
-        return $this->render('blog/post_show.html.twig', ['post' => $post]);
+        $newPost = $entityManager->find(Post::class, $post->getId());
+        //dd($newPost);
+        //return $this->redirectToRoute('blog_post', array('slug' => $post->getSlug()));
+        return $this->redirectToRoute('blog_index');
     }
 
     /**

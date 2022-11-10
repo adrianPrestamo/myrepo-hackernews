@@ -89,6 +89,12 @@ class Post
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'votedPosts')]
     private Collection $votes;
 
+    #[ORM\Column(type: 'json')]
+    private array $userIdVotes = [];
+
+    #[ORM\Column]
+    private ?int $numberOfVotes = null;
+
     public function __construct()
     {
         $this->publishedAt = new \DateTime();
@@ -250,6 +256,45 @@ class Post
     public function removeVote(User $vote): self
     {
         $this->votes->removeElement($vote);
+
+        return $this;
+    }
+
+    public function getUserIdVotes(): array
+    {
+        $userVotedIds = $this->userIdVotes;
+
+        // guarantees that a user always has at least one role for security
+        if (empty($userVotedIds)) {
+            $userVotedIds[] = [];
+        }
+
+        return array_unique($userVotedIds);
+
+        return $this->userIdVotes;
+    }
+
+    public function setUserIdVotes(array $userIdVotes): self
+    {
+        $this->userIdVotes = $userIdVotes;
+
+        return $this;
+    }
+    public function addUserIdVotes(string $userId){
+        $this->userIdVotes[] = $userId;
+        $this->userIdVotes = array_unique($this->userIdVotes);
+
+        //$this->userIdVotes = array_push($this->userIdVotes, $userId);
+    }
+
+    public function getNumberOfVotes(): ?int
+    {
+        return $this->numberOfVotes;
+    }
+
+    public function setNumberOfVotes(int $numberOfVotes): self
+    {
+        $this->numberOfVotes = $numberOfVotes;
 
         return $this;
     }

@@ -8,7 +8,21 @@
         <article class="post">
             <h2 style="display: inline-block">
                 <div style="display: inline-block">
-                    <a href="{{ path('vote_post', {slug: post.slug}) }}"><i class="fa fw fa-long-arrow-up"></i></a>
+{#                    {% for votedPost in app.user.votedPosts %}#}
+{#                        {% if votedPost == post %}#}
+{#                        {% endif %}#}
+{#                    {% endfor %}#}
+                    <li>
+                        {{ post.votes|length}}
+                    </li>
+                        {% if app.user %}
+                            {% if not (app.user.id in post.userIdVotes) %}
+                                <a href="{{ path('vote_post', {slug: post.slug}) }}"><i class="fa fw fa-long-arrow-up"></i></a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{{ path('security_login') }}"><i class="fa fw fa-long-arrow-up"></i></a>
+                        {% endif %}
+
                     {% if post.link %}
                         <a href="{{ post.link }}">
                             {{ post.title }}
