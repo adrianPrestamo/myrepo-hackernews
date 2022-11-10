@@ -49,8 +49,7 @@ class Post
     #[ORM\Column(type: 'string')]
     private ?string $slug = null;
 
-    #[ORM\Column(type: 'string')]
-    #[Assert\NotBlank(message: 'post.blank_summary')]
+    #[ORM\Column(type: 'string', nullable: true)]
     #[Assert\Length(max: 255)]
     private ?string $summary = null;
 
@@ -84,6 +83,9 @@ class Post
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $link = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $type = null;
 
     public function __construct()
     {
@@ -209,6 +211,18 @@ class Post
     public function setComments(ArrayCollection $comments)
     {
         $this->comments = $comments;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }

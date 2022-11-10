@@ -7,9 +7,15 @@
     {% for post in paginator.results %}
         <article class="post">
             <h2>
-                <a href="{{ post.link }}">
-                    {{ post.title }}
-                </a>
+                {% if post.link %}
+                    <a href="{{ post.link }}">
+                        {{ post.title }}
+                    </a>
+                {% else %}
+                    <a href="{{ path('blog_post', {slug: post.slug}) }}">
+                        {{ post.title }}
+                    </a>
+                {% endif %}
             </h2>
             <p class="post-metadata">
                 <span class="metadata"><i class="fa fa-calendar"></i> {{ post.publishedAt|format_datetime('long', 'medium', '', 'UTC') }}</span>

@@ -56,10 +56,31 @@ class BlogController extends AbstractController
     public function index(Request $request, int $page, string $_format, PostRepository $posts, TagRepository $tags): Response
     {
         $tag = null;
+        //dd($request->query);
         if ($request->query->has('tag')) {
             $tag = $tags->findOneBy(['name' => $request->query->get('tag')]);
         }
-        $latestPosts = $posts->findLatest($page, $tag);
+        $latestPosts = null;
+        if ($request->query->has('type')) {
+            $type = '';
+            switch ($request->query->get('type')){
+                case 'ask':
+                    $type = 'ask';
+                    //$latestPosts = $posts->findBy(['type' => $type]);
+                    $latestPosts = $posts->findByType($page, $tag, $type);
+                    break;
+                case 'url':
+                    $type = 'url';
+                    //$latestPosts = $posts->findBy(['type' => $type]);
+                    $latestPosts = $posts->findByType($page, $tag, $type);
+                    break;
+                default:
+                    $latestPosts = $posts->findLatest($page, $tag);
+            }
+        }
+        if(!$latestPosts){
+            $latestPosts = $posts->findLatest($page, $tag);
+        }
 
         // Every template name also has two extensions that specify the format and
         // engine for that template.
@@ -94,7 +115,13 @@ class BlogController extends AbstractController
         // isValid() method already checks whether the form is submitted.
         // However, we explicitly add it to improve code readability.
         // See https://symfony.com/doc/current/forms.html#processing-forms
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
+            if($post->getLink()){
+                $post->setType("url");
+            }
+            else{
+                $post->setType("ask");
+            }
             $entityManager->persist($post);
             $entityManager->flush();
 

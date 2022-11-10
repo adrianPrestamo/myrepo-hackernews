@@ -52,7 +52,6 @@ class PostRepository extends ServiceEntityRepository
         }
         return (new Paginator($qb))->paginate($page);
     }
-
     /**
      * @return Post[]
      */
@@ -79,7 +78,28 @@ class PostRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    /**
+     * @return Post[] Returns an array of Query for paginator filtering by type
+     */
+    public function findByType(int $page = 1, Tag $tag = null, String $type): Paginator
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->addSelect('a', 't')
+            ->innerJoin('p.author', 'a')
+            ->leftJoin('p.tags', 't')
+            ->where('p.publishedAt <= :now')
+            ->andWhere('p.type = :type')
+            ->orderBy('p.publishedAt', 'DESC')
+            ->setParameter('now', new \DateTime())
+            ->setParameter('type', $type)
+        ;
 
+        if (null !== $tag) {
+            $qb->andWhere(':tag MEMBER OF p.tags')
+                ->setParameter('tag', $tag);
+        }
+        return (new Paginator($qb))->paginate($page);
+    }
     /**
      * Transforms the search string into an array of search terms.
      */
