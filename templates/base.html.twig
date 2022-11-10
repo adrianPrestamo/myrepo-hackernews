@@ -41,7 +41,9 @@
                             <ul class="nav navbar-nav navbar-left">
 
                                 <li>
-                                    <a> new </a>
+                                    <a href="{{ path('blog_index') }}">
+                                        new
+                                    </a>
                                 </li>
 
                                 <li>
@@ -53,7 +55,9 @@
                                 </li>
 
                                 <li>
-                                    <a> ask </a>
+                                    <a href="{{ path('blog_index', parameters = {type: 'ask'}) }}">
+                                        ask
+                                    </a>
                                 </li>
 
                                 <li>
