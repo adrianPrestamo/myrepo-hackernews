@@ -6,16 +6,21 @@
 {% block main %}
     {% for post in paginator.results %}
         <article class="post">
-            <h2>
-                {% if post.link %}
-                    <a href="{{ post.link }}">
-                        {{ post.title }}
-                    </a>
-                {% else %}
-                    <a href="{{ path('blog_post', {slug: post.slug}) }}">
-                        {{ post.title }}
-                    </a>
-                {% endif %}
+            <h2 style="display: inline-block">
+                <div style="display: inline-block">
+                    <a href="{{ path('vote_post', {slug: post.slug}) }}"><i class="fa fw fa-long-arrow-up"></i></a>
+                    {% if post.link %}
+                        <a href="{{ post.link }}">
+                            {{ post.title }}
+                        </a>
+                    {% else %}
+                        <a href="{{ path('blog_post', {slug: post.slug}) }}">
+                            {{ post.title }}
+                        </a>
+                    {% endif %}
+                </div>
+
+
             </h2>
             <p class="post-metadata">
                 <span class="metadata"><i class="fa fa-calendar"></i> {{ post.publishedAt|format_datetime('long', 'medium', '', 'UTC') }}</span>

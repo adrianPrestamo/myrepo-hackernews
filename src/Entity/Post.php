@@ -84,13 +84,17 @@ class Post
     private ?string $link = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $type = null;
+    private ?string $type = 'ask';
+
+    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'votedPosts')]
+    private Collection $votes;
 
     public function __construct()
     {
         $this->publishedAt = new \DateTime();
         $this->comments = new ArrayCollection();
         $this->tags = new ArrayCollection();
+        $this->votes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -222,6 +226,30 @@ class Post
     public function setType(string $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getVotes(): Collection
+    {
+        return $this->votes;
+    }
+
+    public function addVote(User $vote): self
+    {
+        if (!$this->votes->contains($vote)) {
+            $this->votes->add($vote);
+        }
+
+        return $this;
+    }
+
+    public function removeVote(User $vote): self
+    {
+        $this->votes->removeElement($vote);
 
         return $this;
     }

@@ -12,6 +12,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -54,6 +56,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'json')]
     private array $roles = [];
+
+    #[ORM\ManyToMany(targetEntity: Post::class, mappedBy: 'votes')]
+    private Collection $votedPosts;
+
+    public function __construct()
+    {
+        $this->votedPosts = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -161,4 +171,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // add $this->salt too if you don't use Bcrypt or Argon2i
         [$this->id, $this->username, $this->password] = $data;
     }
+
+    /**
+     * @return Collection<int, Post>
+     */
+    public function getVotedPosts(): Collection
+    {
+        return $this->votedPosts;
+    }
+
+    public function addVotedPost(Post $votedPost): self
+    {
+        if (!$this->votedPosts->contains($votedPost)) {
+            $this->votedPosts->add($votedPost);
+            $votedPost->addVote($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVotedPost(Post $votedPost): self
+    {
+        if ($this->votedPosts->removeElement($votedPost)) {
+            $votedPost->removeVote($this);
+        }
+
+        return $this;
+    }
+
 }

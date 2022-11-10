@@ -154,29 +154,24 @@ class BlogController extends AbstractController
     #[Route('/posts/{slug}', methods: ['GET'], name: 'blog_post')]
     public function postShow(Post $post, CommentRepository $commentRepository): Response
     {
-        // Symfony's 'dump()' function is an improved version of PHP's 'var_dump()' but
-        // it's not available in the 'prod' environment to prevent leaking sensitive information.
-        // It can be used both in PHP files and Twig templates, but it requires to
-        // have enabled the DebugBundle. Uncomment the following line to see it in action:
-        //
-        // dump($post, $this->getUser(), new \DateTime());
-        //
-        // The result will be displayed either in the Symfony Profiler or in the stream output.
-        // See https://symfony.com/doc/current/profiler.html
-        // See https://symfony.com/doc/current/templates.html#the-dump-twig-utilities
-        //
-        // You can also leverage Symfony's 'dd()' function that dumps and
-        // stops the execution
-        //dd($post);
-//
+
         $comments = new ArrayCollection($commentRepository->findBy(['post' => $post, 'parentComment' => null]));
 
-//        $post->setComments($comments);
-//        foreach ($post->getComments() as $comment){
-//            dd($comment);
-//        }
-        //dd($post->getComments());
         $post->setComments($comments);
+        return $this->render('blog/post_show.html.twig', ['post' => $post]);
+    }
+
+    #[Route('/posts/{slug}/vote', methods: ['GET'], name: 'vote_post')]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function postVote(Post $post, CommentRepository $commentRepository): Response
+    {
+        $comments = new ArrayCollection($commentRepository->findBy(['post' => $post, 'parentComment' => null]));
+
+        $post->setComments($comments);
+        //dd($post);
+        $response = new Response();
+        $response->setStatusCode(201);
+
         return $this->render('blog/post_show.html.twig', ['post' => $post]);
     }
 
@@ -325,8 +320,6 @@ class BlogController extends AbstractController
 
         return $this->json($results);
     }
-
-
 
     /**
      * Finds and displays a Post entity.
