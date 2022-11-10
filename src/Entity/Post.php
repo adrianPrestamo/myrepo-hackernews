@@ -92,8 +92,8 @@ class Post
     #[ORM\Column(type: 'json')]
     private array $userIdVotes = [];
 
-    #[ORM\Column]
-    private ?int $numberOfVotes = null;
+    #[ORM\Column(options: ["default" => 0])]
+    private ?int $numberOfVotes = 0;
 
     public function __construct()
     {
@@ -248,6 +248,9 @@ class Post
     {
         if (!$this->votes->contains($vote)) {
             $this->votes->add($vote);
+            $this->addUserIdVotes($vote->getId());
+            $this->incrementNumberOfVotes();
+
         }
 
         return $this;
@@ -298,4 +301,11 @@ class Post
 
         return $this;
     }
+    public function incrementNumberOfVotes(): self
+    {
+        $this->numberOfVotes += 1;
+
+        return $this;
+    }
+
 }

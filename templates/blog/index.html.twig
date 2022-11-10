@@ -13,7 +13,7 @@
 {#                        {% endif %}#}
 {#                    {% endfor %}#}
                     <li>
-                        {{ post.votes|length}}
+                        {{ post.numberOfVotes }}
                     </li>
                         {% if app.user %}
                             {% if not (app.user.id in post.userIdVotes) %}

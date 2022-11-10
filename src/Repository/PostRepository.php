@@ -52,6 +52,24 @@ class PostRepository extends ServiceEntityRepository
         }
         return (new Paginator($qb))->paginate($page);
     }
+    public function findNewest(int $page = 1, Tag $tag = null): Paginator
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->addSelect('a', 't')
+            ->innerJoin('p.author', 'a')
+            ->leftJoin('p.tags', 't')
+            ->where('p.publishedAt <= :now')
+            ->orderBy('p.numberOfVotes', 'DESC')
+            ->setParameter('now', new \DateTime())
+        ;
+
+        if (null !== $tag) {
+            $qb->andWhere(':tag MEMBER OF p.tags')
+                ->setParameter('tag', $tag);
+        }
+        return (new Paginator($qb))->paginate($page);
+    }
+
     /**
      * @return Post[]
      */

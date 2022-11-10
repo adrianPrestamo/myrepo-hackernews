@@ -166,12 +166,12 @@ class BlogController extends AbstractController
     public function postVote(Post $post,  EntityManagerInterface $entityManager): Response
     {
         $post->addVote($this->getUser());
-        $post->addUserIdVotes($this->getUser()->getId());
+        //$post->addUserIdVotes($this->getUser()->getId());
 
         $entityManager->persist($post);
         $entityManager->flush();
 
-        $newPost = $entityManager->find(Post::class, $post->getId());
+
         //dd($newPost);
         //return $this->redirectToRoute('blog_post', array('slug' => $post->getSlug()));
         return $this->redirectToRoute('blog_index');
