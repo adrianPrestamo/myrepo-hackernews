@@ -49,10 +49,17 @@
             </h2>
             <p class="post-metadata">
                 <span class="metadata"> {{ post.numberOfVotes }} points by -></span>
-                <span class="metadata"></i>{{ post.author.fullName }} |</span>
+                <a href="{{ path('user_show', {username: post.author.username}) }}">
+                    <u>
+                        <span class="metadata"> {{ post.author.username }}</span>
+                    </u>
+                </a>
+
                 <span class="metadata"><i class="fa fa-calendar"></i> {{ post.publishedAt|format_datetime('short', 'short', '', 'UTC') }}</span>
                 <a href="{{ path('blog_post', {slug: post.slug}) }}">
-                    <span class="metadata"></i>| discuss</span>
+                    <u>
+                        <span class="metadata"></i>| discuss</span>
+                    </u>
                 </a>
 
             </p>
