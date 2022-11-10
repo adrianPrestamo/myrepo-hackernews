@@ -135,7 +135,7 @@ class BlogController extends AbstractController
                 return $this->redirectToRoute('post_new');
             }
 
-            return $this->redirectToRoute('post_new');
+            return $this->redirectToRoute('blog_index');
         }
 
         return $this->render('admin/blog/new.html.twig', [
