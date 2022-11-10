@@ -50,8 +50,7 @@ class Post
     private ?string $slug = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
-    #[Assert\Length(max: 255)]
-    private ?string $summary = null;
+    private ?string $summary = '';
 
     #[ORM\Column(type: 'text')]
     #[Assert\NotBlank(message: 'post.blank_content')]
