@@ -22,6 +22,7 @@ use App\Repository\TagRepository;
 use App\Security\PostVoter;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Exception;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
@@ -139,13 +140,16 @@ class BlogController extends AbstractController
         //
         // You can also leverage Symfony's 'dd()' function that dumps and
         // stops the execution
+        //dd($post);
+//
+        $comments = new ArrayCollection($commentRepository->findBy(['post' => $post, 'parentComment' => null]));
 
-        //$comments = new ArrayCollection($commentRepository->findBy(['post' => $post]));
-        //$post->setComments($comments);
+//        $post->setComments($comments);
 //        foreach ($post->getComments() as $comment){
 //            dd($comment);
 //        }
-        //dd($post);
+        //dd($post->getComments());
+        $post->setComments($comments);
         return $this->render('blog/post_show.html.twig', ['post' => $post]);
     }
 
@@ -176,13 +180,69 @@ class BlogController extends AbstractController
             // passed in the event and they can even modify the execution flow, so
             // there's no guarantee that the rest of this controller will be executed.
             // See https://symfony.com/doc/current/components/event_dispatcher.html
-            $eventDispatcher->dispatch(new CommentCreatedEvent($comment));
+            try{
+                $eventDispatcher->dispatch(new CommentCreatedEvent($comment));
+
+            }
+            catch(Exception $e){
+
+            }
 
             return $this->redirectToRoute('blog_post', ['slug' => $post->getSlug()]);
         }
 
         return $this->render('blog/comment_form_error.html.twig', [
             'post' => $post,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    /**
+     * NOTE: The ParamConverter mapping is required because the route parameter
+     * (postSlug) doesn't match any of the Doctrine entity properties (slug).
+     *
+     * See https://symfony.com/doc/current/bundles/SensioFrameworkExtraBundle/annotations/converters.html#doctrine-converter
+     */
+    #[Route('/comment/{id}', methods: ['POST'], name: 'reply_new')]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+//    #[ParamConverter('parentComment', options: ['mapping' => ['id' => 'id']])]
+    public function replyNew(Request $request, Comment $parentComment, EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager): Response
+    {
+        $comment = new Comment();
+        $comment->setAuthor($this->getUser());
+        $comment->setPost($parentComment->getPost());
+
+
+
+        $form = $this->createForm(CommentType::class, $comment);
+        $form->handleRequest($request);
+
+        $parentComment->addReply($comment);
+
+        $entityManager->persist($comment);
+        $entityManager->flush();
+        if ($form->isSubmitted() && $form->isValid()) {
+//            $entityManager->persist($comment);
+//            $entityManager->flush();
+
+            // When an event is dispatched, Symfony notifies it to all the listeners
+            // and subscribers registered to it. Listeners can modify the information
+            // passed in the event and they can even modify the execution flow, so
+            // there's no guarantee that the rest of this controller will be executed.
+            // See https://symfony.com/doc/current/components/event_dispatcher.html
+            try{
+                $eventDispatcher->dispatch(new CommentCreatedEvent($comment));
+
+            }
+            catch(Exception $e){
+
+            }
+
+            return $this->redirectToRoute('blog_post', ['slug' => $parentComment->getPost()->getSlug()]);
+        }
+
+        return $this->render('blog/comment_form_error.html.twig', [
+            'post' => $parentComment->getPost(),
             'form' => $form->createView(),
         ]);
     }
@@ -204,7 +264,15 @@ class BlogController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+    public function replyForm(Comment $comment): Response
+    {
+        $form = $this->createForm(CommentType::class);
 
+        return $this->render('blog/_reply_form.html.twig', [
+            'comment' => $comment,
+            'form' => $form->createView(),
+        ]);
+    }
     #[Route('/search', methods: ['GET'], name: 'blog_search')]
     public function search(Request $request, PostRepository $posts): Response
     {

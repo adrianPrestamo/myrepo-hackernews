@@ -38,19 +38,24 @@
     </h3>
     {% macro renderComment(comment) %}
         {% import _self as self %}
-            <div class="row post-comment">
-                <a name="comment_{{ comment.id }}"></a>
-                <h4 class="col-sm-3">
-                    <strong>{{ comment.author.fullName }}</strong> {{ 'post.commented_on'|trans }}
-                    {# it's not mandatory to set the timezone in localizeddate(). This is done to
-                           avoid errors when the 'intl' PHP extension is not available and the application
-                           is forced to use the limited "intl polyfill", which only supports UTC and GMT #}
-                    <strong>{{ comment.publishedAt|format_datetime('medium', 'short', '', 'UTC') }}</strong>
-                </h4>
-                <div class="col-sm-9">
-                    {{ comment.content|markdown_to_html|sanitize_html }}
-                </div>
+        <div class="row post-comment">
+            <a name="comment_{{ comment.id }}"></a>
+            <h4 class="col-sm-3">
+                <strong>{{ comment.author.fullName }}</strong> {{ 'post.commented_on'|trans }}
+                {# it's not mandatory to set the timezone in localizeddate(). This is done to
+               avoid errors when the 'intl' PHP extension is not available and the application
+               is forced to use the limited "intl polyfill", which only supports UTC and GMT #}
+                <strong>{{ comment.publishedAt|format_datetime('medium', 'short', '', 'UTC') }}</strong>
+            </h4>
+            <div class="col-sm-9">
+                {{ comment.content|markdown_to_html|sanitize_html }}
             </div>
+        </div>
+        {% if app.user %}
+            <div>
+                {{ render(controller('App\\Controller\\BlogController::replyForm', {'id': comment.id})) }}
+            </div>
+        {% endif %}
     {% endmacro %}
 
     {% from _self import renderComment %}
@@ -58,28 +63,37 @@
 
     {% macro recursiveComment(comments) %}
         {% import _self as self %}
-        <li >
-            hola
-        </li>
-            {% for reply in comments.replies() %}
-                {% if reply.replies|length > 0 %}
-                    {{ self.recursiveComment(reply.replies) }}
-                {% endif %}
-            {% endfor %}
+            <ul>
+                {% for reply in comments %}
+                    {{ self.renderComment(reply) }}
+                    {% if reply.replies|length > 0 %}
+                        {{ self.recursiveComment(reply.replies) }}
+                    {% endif %}
+                {% endfor %}
+            </ul>
+
+
     {% endmacro %}
 
     {% from _self import recursiveComment %}
 
     {{ recursiveComment(post.getComments()) }}
+{#    <li>#}
+{#        AFTER RECURSIVE#}
+{#    </li>#}
+{#    {% for comment in post.comments %}#}
+{#        {{ renderComment(comment) }}#}
+{#        <div hello>#}
+{#        {% for reply in comment.replies %}#}
+{#            {{ renderComment(reply) }}#}
+{#        {% endfor %}#}
+{#        </div>#}
+{#    {% endfor %}#}
+
+
     <li>
-        AFTER RECURSIVE
+        {{ post.comments }}
     </li>
-    {% for comment in post.comments %}
-        renderComment(comment)
-    {% endfor %}
-
-
-
     {% if post.comments|length == 0 %}
         <div class="post-comment">
             <p>{{ 'post.no_comments'|trans }}</p>

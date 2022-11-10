@@ -55,9 +55,9 @@ class Comment
     private ?User $author = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'replies')]
-    private ?self $parent_comment = null;
+    private ?self $parentComment = null;
 
-    #[ORM\OneToMany(mappedBy: 'parent_comment', targetEntity: self::class)]
+    #[ORM\OneToMany(mappedBy: 'parentComment', targetEntity: self::class)]
     private Collection $replies;
 
     public function __construct()
@@ -121,12 +121,12 @@ class Comment
 
     public function getParentComment(): ?self
     {
-        return $this->parent_comment;
+        return $this->parentComment;
     }
 
-    public function setParentComment(?self $parent_comment): self
+    public function setParentComment(?self $parentComment): self
     {
-        $this->parent_comment = $parent_comment;
+        $this->parentComment = $parentComment;
 
         return $this;
     }
@@ -160,4 +160,5 @@ class Comment
 
         return $this;
     }
+
 }
