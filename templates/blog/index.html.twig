@@ -4,49 +4,66 @@
 
 
 {% block main %}
+    {% set position = 0 %}
     {% for post in paginator.results %}
-        <article class="post">
-            <h2 style="display: inline-block">
-                <div style="display: inline-block">
-{#                    {% for votedPost in app.user.votedPosts %}#}
-{#                        {% if votedPost == post %}#}
-{#                        {% endif %}#}
-{#                    {% endfor %}#}
-                    <li>
-                        {{ post.numberOfVotes }}
-                    </li>
+        {% set position = position + 1 %}
+        <article>
+            <h2 >
+                <a href="{{ path('blog_post', {slug: post.slug}) }}">
+                </a>
+                <div >
+
+                    <ul style="padding-left: 0px; padding-top: 8px;display: inline" >
+                        <span >
+                            {{ position }}.
+                        </span>
                         {% if app.user %}
                             {% if not (app.user.id in post.userIdVotes) %}
-                                <a href="{{ path('vote_post', {slug: post.slug}) }}"><i class="fa fw fa-long-arrow-up"></i></a>
+                                <a href="{{ path('vote_post', {slug: post.slug}) }}"><i class="fa fw fa-long-arrow-up" style="color: black"></i></a>
                             {% endif %}
                         {% else %}
-                            <a href="{{ path('security_login') }}"><i class="fa fw fa-long-arrow-up"></i></a>
+                            <a href="{{ path('security_login') }}"><i class="fa fw fa-long-arrow-up" style="color: black"></i></a>
                         {% endif %}
 
-                    {% if post.link %}
-                        <a href="{{ post.link }}">
-                            {{ post.title }}
-                        </a>
-                    {% else %}
-                        <a href="{{ path('blog_post', {slug: post.slug}) }}">
-                            {{ post.title }}
-                        </a>
-                    {% endif %}
+                        {% if post.link %}
+                            <a href="{{ post.link }}">
+                                <u style="color: black">
+                                    {{ post.title }}
+                                </u>
+                            </a>
+                        {% else %}
+                            <a href="{{ path('blog_post', {slug: post.slug}) }}">
+                                <u style="color: black">
+                                    {{ post.title }}
+                                </u>
+                            </a>
+                        {% endif %}
+                        <text style="font-size:small">
+
+                        </text>
+                    </ul>
                 </div>
+                <div>
 
-
+                </div>
             </h2>
             <p class="post-metadata">
-                <span class="metadata"><i class="fa fa-calendar"></i> {{ post.publishedAt|format_datetime('long', 'medium', '', 'UTC') }}</span>
-                <span class="metadata"><i class="fa fa-user"></i> {{ post.author.fullName }}</span>
+                <span class="metadata"> {{ post.numberOfVotes }} points by -></span>
+                <span class="metadata"></i>{{ post.author.fullName }} |</span>
+                <span class="metadata"><i class="fa fa-calendar"></i> {{ post.publishedAt|format_datetime('short', 'short', '', 'UTC') }}</span>
+                <a href="{{ path('blog_post', {slug: post.slug}) }}">
+                    <span class="metadata"></i>| discuss</span>
+                </a>
+
             </p>
 
             {{ include('blog/_post_tags.html.twig') }}
         </article>
+        <hr style="  display: block;  margin-top: 0.5em;  margin-bottom: 0.5em;  margin-left: auto;  margin-right: auto;  border-style: inset;  border-width: 1px;">
+
     {% else %}
         <div class="well">{{ 'post.no_posts_found'|trans }}</div>
     {% endfor %}
-
     {% if paginator.hasToPaginate %}
         <div class="navigation text-center">
             <ul class="pagination">
@@ -63,7 +80,6 @@
                         <li><a href="{{ path('blog_index_paginated', {page: i, tag: tagName}) }}">{{ i }}</a></li>
                     {% endif %}
                 {% endfor %}
-
                 {% if paginator.hasNextPage %}
                     <li class="next"><a href="{{ path('blog_index_paginated', {page: paginator.nextPage, tag: tagName}) }}" rel="next">{{ 'paginator.next'|trans }} <i class="fa fw fa-arrow-right"></i></a></li>
                 {% else %}

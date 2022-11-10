@@ -78,22 +78,6 @@
     {% from _self import recursiveComment %}
 
     {{ recursiveComment(post.getComments()) }}
-{#    <li>#}
-{#        AFTER RECURSIVE#}
-{#    </li>#}
-{#    {% for comment in post.comments %}#}
-{#        {{ renderComment(comment) }}#}
-{#        <div hello>#}
-{#        {% for reply in comment.replies %}#}
-{#            {{ renderComment(reply) }}#}
-{#        {% endfor %}#}
-{#        </div>#}
-{#    {% endfor %}#}
-
-
-    <li>
-        {{ post.comments }}
-    </li>
     {% if post.comments|length == 0 %}
         <div class="post-comment">
             <p>{{ 'post.no_comments'|trans }}</p>
