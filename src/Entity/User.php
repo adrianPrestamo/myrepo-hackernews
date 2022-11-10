@@ -31,6 +31,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'symfony_demo_user')]
+#[UniqueEntity('username')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -39,13 +40,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
-    #[Assert\NotBlank]
-    private ?string $fullName = null;
+    private ?string $fullName = "";
 
     #[ORM\Column(type: 'string', unique: true)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 2, max: 50)]
-    private ?string $username = "";
+    private ?string $username = null;
 
     #[ORM\Column(type: 'string', unique: true, nullable: true)]
     #[Assert\Email]
@@ -82,6 +82,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getUserIdentifier(): string
     {
+        if($this->username == null) return "";
         return $this->username;
     }
 
