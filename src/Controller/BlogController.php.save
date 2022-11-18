@@ -92,7 +92,13 @@ class BlogController extends AbstractController
             'tagName' => $tag?->getName(),
         ]);
     }
-    
+
+    public function sendHttpReq(string $path){
+	$httpClient = HttpClient::create();
+	$httpClient->request('GET', $path);
+    } 			
+
+
     #[Route('/newest', defaults: ['page' => '1', '_format' => 'html'], methods: ['GET'], name: 'blog_newest_index')]
     #[Route('/rss.xml', defaults: ['page' => '1', '_format' => 'xml'], methods: ['GET'], name: 'blog_newest_rss')]
     #[Route('/page/{page<[1-9]\d*>}', defaults: ['_format' => 'html'], methods: ['GET'], name: 'blog_newest_paginated')]
@@ -154,7 +160,7 @@ class BlogController extends AbstractController
             ->add('saveAndCreateNew', SubmitType::class);
         $form->handleRequest($request);
 
-        if($post->getLink()){
+        if($post->getLink() && $this->checkLink($post->getLink())){
             $post->setType("url");
 
             $exsistingPost = $postRepository->findOneBy(['link' => $post->getLink()]);

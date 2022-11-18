@@ -81,6 +81,9 @@ class Post
     private Collection $tags;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Url(
+    	message: 'The url {{ value }} is not a valid url'
+    )]
     private ?string $link = null;
 
     #[ORM\Column(length: 255)]
