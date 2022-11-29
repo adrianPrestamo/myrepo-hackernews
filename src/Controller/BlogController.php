@@ -32,6 +32,7 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpClient\HttpClient;
 use Doctrine\Common\Collections\ArrayCollection;
 
 /**
@@ -66,7 +67,23 @@ class BlogController extends AbstractController
         if(!$latestPosts){
             $latestPosts = $posts->findNewest($page, $tag);
         }
-
+	 if ($request->query->has('type')) {
+            $type = '';
+            switch ($request->query->get('type')){
+                case 'ask':
+                    $type = 'ask';
+                    //$latestPosts = $posts->findBy(['type' => $type]);
+                    $latestPosts = $posts->findByType($page, $tag, $type);
+                    break;
+                case 'url':
+                    $type = 'url';
+                    //$latestPosts = $posts->findBy(['type' => $type]);
+                    $latestPosts = $posts->findByType($page, $tag, $type);
+                    break;
+                default:
+                    $latestPosts = $posts->findNewest($page, $tag);
+            }
+        }
         // Every template name also has two extensions that specify the format and
         // engine for that template.
         // See https://symfony.com/doc/current/templates.html#template-naming
@@ -75,7 +92,7 @@ class BlogController extends AbstractController
             'tagName' => $tag?->getName(),
         ]);
     }
-
+    
     #[Route('/newest', defaults: ['page' => '1', '_format' => 'html'], methods: ['GET'], name: 'blog_newest_index')]
     #[Route('/rss.xml', defaults: ['page' => '1', '_format' => 'xml'], methods: ['GET'], name: 'blog_newest_rss')]
     #[Route('/page/{page<[1-9]\d*>}', defaults: ['_format' => 'html'], methods: ['GET'], name: 'blog_newest_paginated')]
@@ -231,13 +248,6 @@ class BlogController extends AbstractController
             // passed in the event and they can even modify the execution flow, so
             // there's no guarantee that the rest of this controller will be executed.
             // See https://symfony.com/doc/current/components/event_dispatcher.html
-            try{
-                $eventDispatcher->dispatch(new CommentCreatedEvent($comment));
-
-            }
-            catch(Exception $e){
-
-            }
 
             return $this->redirectToRoute('blog_post', ['slug' => $post->getSlug()]);
         }
