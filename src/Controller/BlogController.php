@@ -55,7 +55,7 @@ class BlogController extends AbstractController
     #[Route('/rss.xml', defaults: ['page' => '1', '_format' => 'xml'], methods: ['GET'], name: 'blog_rss')]
     #[Route('/page/{page<[1-9]\d*>}', defaults: ['_format' => 'html'], methods: ['GET'], name: 'blog_index_paginated')]
     #[Cache(smaxage: 10)]
-    public function index(Request $request, int $page, string $_format, PostRepository $posts, TagRepository $tags): Response
+    public function index(Request $request, int $page, string $_format, PostRepository $posts, TagRepository $tags): JsonResponse
     {
         $tag = null;
         //dd($request->query);
@@ -65,12 +65,23 @@ class BlogController extends AbstractController
         $latestPosts = null;
 
         if(!$latestPosts){
-            $latestPosts = $posts->findNewest($page, $tag);
+            $latestPosts = $posts->findNewestAll($tag);
         }
 
         // Every template name also has two extensions that specify the format and
         // engine for that template.
         // See https://symfony.com/doc/current/templates.html#template-naming
+
+        $postsJson = [];
+        foreach ($latestPosts as $post){
+            $postsJson[] = $post->toJson();
+        }
+        $response = new JsonResponse();
+        $response->setStatusCode(200);
+        $response->setContent(json_encode($postsJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        return $response;
+
         return $this->render('blog/index.'.$_format.'.twig', [
             'paginator' => $latestPosts,
             'tagName' => $tag?->getName(),
@@ -81,7 +92,7 @@ class BlogController extends AbstractController
     #[Route('/rss.xml', defaults: ['page' => '1', '_format' => 'xml'], methods: ['GET'], name: 'blog_newest_rss')]
     #[Route('/page/{page<[1-9]\d*>}', defaults: ['_format' => 'html'], methods: ['GET'], name: 'blog_newest_paginated')]
     #[Cache(smaxage: 10)]
-    public function newestPosts(Request $request, int $page, string $_format, PostRepository $posts, TagRepository $tags): Response
+    public function newestPosts(Request $request, int $page, string $_format, PostRepository $posts, TagRepository $tags): JsonResponse
     {
         $tag = null;
 
@@ -95,21 +106,30 @@ class BlogController extends AbstractController
                 case 'ask':
                     $type = 'ask';
                     //$latestPosts = $posts->findBy(['type' => $type]);
-                    $latestPosts = $posts->findByType($page, $tag, $type);
+                    $latestPosts = $posts->findByTypeAll($tag, $type);
                     break;
                 case 'url':
                     $type = 'url';
                     //$latestPosts = $posts->findBy(['type' => $type]);
-                    $latestPosts = $posts->findByType($page, $tag, $type);
+                    $latestPosts = $posts->findByTypeAll($tag, $type);
                     break;
                 default:
-                    $latestPosts = $posts->findLatest($page, $tag);
+                    $latestPosts = $posts->findLatestAll($tag);
             }
         }
         if(!$latestPosts){
-            $latestPosts = $posts->findLatest($page, $tag);
+            $latestPosts = $posts->findLatestAll($tag);
         }
 
+        $postsJson = [];
+        foreach ($latestPosts as $post){
+            $postsJson[] = $post->toJson();
+        }
+        $response = new JsonResponse();
+        $response->setStatusCode(200);
+        $response->setContent(json_encode($postsJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        return $response;
         // Every template name also has two extensions that specify the format and
         // engine for that template.
         // See https://symfony.com/doc/current/templates.html#template-naming
@@ -198,7 +218,7 @@ class BlogController extends AbstractController
 
         $response = new JsonResponse();
         $response->setStatusCode(200);
-        $response->setContent(json_encode($postArray, JSON_PRETTY_PRINT));
+        $response->setContent(json_encode($postArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         return $response;
         //return $this->render('blog/post_show.html.twig', ['post' => $post]);
     }

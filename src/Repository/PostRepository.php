@@ -52,6 +52,27 @@ class PostRepository extends ServiceEntityRepository
         }
         return (new Paginator($qb))->paginate($page);
     }
+
+    public function findLatestAll(Tag $tag = null): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->addSelect('a', 't')
+            ->innerJoin('p.author', 'a')
+            ->leftJoin('p.tags', 't')
+            ->where('p.publishedAt <= :now')
+            ->orderBy('p.publishedAt', 'DESC')
+            ->setParameter('now', new \DateTime())
+        ;
+
+        if (null !== $tag) {
+            $qb->andWhere(':tag MEMBER OF p.tags')
+                ->setParameter('tag', $tag)
+            ;
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function findNewest(int $page = 1, Tag $tag = null): Paginator
     {
         $qb = $this->createQueryBuilder('p')
@@ -68,6 +89,24 @@ class PostRepository extends ServiceEntityRepository
                 ->setParameter('tag', $tag);
         }
         return (new Paginator($qb))->paginate($page);
+    }
+
+    public function findNewestAll(Tag $tag = null): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->addSelect('a', 't')
+            ->innerJoin('p.author', 'a')
+            ->leftJoin('p.tags', 't')
+            ->where('p.publishedAt <= :now')
+            ->orderBy('p.numberOfVotes', 'DESC')
+            ->setParameter('now', new \DateTime())
+        ;
+
+        if (null !== $tag) {
+            $qb->andWhere(':tag MEMBER OF p.tags')
+                ->setParameter('tag', $tag);
+        }
+        return $qb->getQuery()->getResult();
     }
 
     /**
@@ -118,6 +157,30 @@ class PostRepository extends ServiceEntityRepository
         }
         return (new Paginator($qb))->paginate($page);
     }
+
+    /**
+     * @return Post[] Returns a result filtering by type
+     */
+    public function findByTypeAll(Tag $tag = null, String $type): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->addSelect('a', 't')
+            ->innerJoin('p.author', 'a')
+            ->leftJoin('p.tags', 't')
+            ->where('p.publishedAt <= :now')
+            ->andWhere('p.type = :type')
+            ->orderBy('p.publishedAt', 'DESC')
+            ->setParameter('now', new \DateTime())
+            ->setParameter('type', $type)
+        ;
+
+        if (null !== $tag) {
+            $qb->andWhere(':tag MEMBER OF p.tags')
+                ->setParameter('tag', $tag);
+        }
+        return $qb->getQuery()->getResult();
+    }
+
     /**
      * Transforms the search string into an array of search terms.
      */
