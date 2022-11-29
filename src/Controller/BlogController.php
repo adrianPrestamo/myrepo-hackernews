@@ -29,6 +29,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -179,13 +180,27 @@ class BlogController extends AbstractController
      * See https://symfony.com/doc/current/bundles/SensioFrameworkExtraBundle/annotations/converters.html
      */
     #[Route('/posts/{slug}', methods: ['GET'], name: 'blog_post')]
-    public function postShow(Post $post, CommentRepository $commentRepository): Response
+    public function postShow(Post $post, CommentRepository $commentRepository): JsonResponse
     {
 
         $comments = new ArrayCollection($commentRepository->findBy(['post' => $post, 'parentComment' => null]));
 
         $post->setComments($comments);
-        return $this->render('blog/post_show.html.twig', ['post' => $post]);
+        $postArray = $post->toJson();
+
+        $postArray['comments'] = [];
+        foreach ($comments as $comment){
+            $postArray['comments'][] = $comment->toJson();
+
+        }
+
+        //dd($post->toJson());
+
+        $response = new JsonResponse();
+        $response->setStatusCode(200);
+        $response->setContent(json_encode($postArray, JSON_PRETTY_PRINT));
+        return $response;
+        //return $this->render('blog/post_show.html.twig', ['post' => $post]);
     }
 
     #[Route('/posts/{slug}/vote', methods: ['GET'], name: 'vote_post')]

@@ -162,4 +162,19 @@ class Comment
         return $this;
     }
 
+    public function toJson(){
+        $array['id'] = $this->id;
+        $array['author_id'] = $this->author->getId();
+        $array['content'] = $this->content;
+        $array['post'] = $this->post->getId();
+        $array['published_at'] = $this->publishedAt->format("d-m-Y H:i:s");
+
+        $array['replies'] = [];
+
+        foreach ($this->replies as $reply){
+            $array['replies'][] = $reply->toJson();
+        }
+
+        return $array;
+    }
 }
