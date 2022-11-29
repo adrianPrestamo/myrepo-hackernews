@@ -39,15 +39,11 @@ class UserController extends AbstractController
     {
 
         $user = $userRepository->findOneBy(["username" => $request->attributes->get("username")]);
-        $posts = $postRepository->findOneBy(["author" => $user]);
-        //TODO add comments
-        //$comments = $commentRepository->findOneBy(["author" => $user]);
-        //$user->comments = $comments;
+        $posts = $postRepository->findBy(["author" => $user]);
         $user->posts = $posts;
-
         $postsJson = [];
         foreach ($posts as $post){
-            $postsJson[] = $post->toJson();
+            $postsJson[] = ["id" => $post->getId(),"slug" => $post->getSlug()];
         }
         $userJson = $user->toJson();
         $userJson['posts'] = $postsJson;
