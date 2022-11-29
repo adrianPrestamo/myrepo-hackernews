@@ -195,7 +195,7 @@ class Post
         }
     }
 
-    public function removeTag(Tag $tag): void
+    public function removeTag(Tag $tag): voidlink
     {
         $this->tags->removeElement($tag);
     }
@@ -308,4 +308,24 @@ class Post
         return $this;
     }
 
+    public function toJson(){
+
+        $array['id'] = $this->id;
+        $array['author_id'] = $this->author->getId();
+        $array['title'] = $this->title;
+        $array['content'] = $this->content;
+        $array['slug'] = $this->slug;
+        $array['type'] = $this->type;
+        $array['content'] = $this->content;
+        $array['link'] = $this->link;
+        $array['votes'] = $this->numberOfVotes;
+        $array['user_id_votes'] = $this->userIdVotes;
+
+        foreach ($this->tags as $tag){
+            $array['tags'][] = [$tag->getId(), $tag->getName()];
+        }
+        $array['published_at'] = $this->publishedAt->format("d-m-Y H:i:s");
+
+        return $array;
+    }
 }
