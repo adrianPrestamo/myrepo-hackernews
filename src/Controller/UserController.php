@@ -19,6 +19,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -29,25 +30,37 @@ use Symfony\Component\Routing\Annotation\Route;
  *
  * @author Romain Monteil <monteil.romain@gmail.com>
  */
-#[Route('/profile'), IsGranted('ROLE_USER')]
+#[Route('/profile')]
 class UserController extends AbstractController
 {
     #[Route('/show/{username}', methods: ['GET'], name: 'user_show')]
 //    #[ParamConverter('user', options: ['mapping' => ['username' => 'username']])]
-    public function show(Request $request, UserRepository $userRepository, PostRepository $postRepository, CommentRepository $commentRepository, EntityManagerInterface $entityManager): Response
+    public function show(Request $request, UserRepository $userRepository, PostRepository $postRepository, CommentRepository $commentRepository, EntityManagerInterface $entityManager): JsonResponse
     {
 
         $user = $userRepository->findOneBy(["username" => $request->attributes->get("username")]);
-        $posts = $postRepository->findOneBy(["author" => $user]);
-        $comments = $commentRepository->findOneBy(["author" => $user]);
+        $posts = $postRepository->findBy(["author" => $user]);
         $user->posts = $posts;
-        $user->comments = $comments;
+        $postsJson = [];
+        foreach ($posts as $post){
+            $postsJson[] = ["id" => $post->getId(),"slug" => $post->getSlug()];
+        }
+        $userJson = $user->toJson();
+        $userJson['posts'] = $postsJson;
+
+        $response = new JsonResponse();
+        $response->setStatusCode(200);
+        $response->setContent(json_encode($userJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        return $response;
+
         return $this->render('user/show.html.twig', [
             'showUser' => $user
         ]);
     }
 
     #[Route('/edit', methods: ['GET', 'POST'], name: 'user_edit')]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function edit(Request $request, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
@@ -70,6 +83,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/change-password', methods: ['GET', 'POST'], name: 'user_change_password')]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function changePassword(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();

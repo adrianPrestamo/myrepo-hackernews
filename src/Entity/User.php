@@ -199,5 +199,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+    public function toJson(){
+        $array['id'] = $this->id;
+        $array['username'] = $this->username;
+        $array['email'] = $this->email;
+        $array['voted_posts_slug'] = [];
 
+        foreach ($this->posts as $post){
+            $array['voted_posts_slug'][] = $post->getSlug();
+        }
+
+        return $array;
+    }
 }
