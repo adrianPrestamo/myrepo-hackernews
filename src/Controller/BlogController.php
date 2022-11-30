@@ -45,7 +45,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  * @author Ryan Weaver <weaverryan@gmail.com>
  * @author Javier Eguiluz <javier.eguiluz@gmail.com>
  */
-#[Route('/')]
+#[Route('/api')]
 class BlogController extends AbstractController
 {
     /**
@@ -54,11 +54,7 @@ class BlogController extends AbstractController
      *
      * See https://symfony.com/doc/current/routing.html#special-parameters
      */
-    #[Route('/', defaults: ['page' => '1', '_format' => 'html'], methods: ['GET'], name: 'blog_index')]
     #[Route('/new', defaults: ['page' => '1', '_format' => 'html'], methods: ['GET'], name: 'blog_index_2')]
-    #[Route('/rss.xml', defaults: ['page' => '1', '_format' => 'xml'], methods: ['GET'], name: 'blog_rss')]
-    #[Route('/page/{page<[1-9]\d*>}', defaults: ['_format' => 'html'], methods: ['GET'], name: 'blog_index_paginated')]
-    #[Cache(smaxage: 10)]
     public function index(Request $request, int $page, string $_format, PostRepository $posts, TagRepository $tags): JsonResponse
     {
         $tag = null;
@@ -93,9 +89,6 @@ class BlogController extends AbstractController
     }
 
     #[Route('/newest', defaults: ['page' => '1', '_format' => 'html'], methods: ['GET'], name: 'blog_newest_index')]
-    #[Route('/rss.xml', defaults: ['page' => '1', '_format' => 'xml'], methods: ['GET'], name: 'blog_newest_rss')]
-    #[Route('/page/{page<[1-9]\d*>}', defaults: ['_format' => 'html'], methods: ['GET'], name: 'blog_newest_paginated')]
-    #[Cache(smaxage: 10)]
     public function newestPosts(Request $request, int $page, string $_format, PostRepository $posts, TagRepository $tags): JsonResponse
     {
         $tag = null;

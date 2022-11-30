@@ -30,7 +30,7 @@ use Symfony\Component\Routing\Annotation\Route;
  *
  * @author Romain Monteil <monteil.romain@gmail.com>
  */
-#[Route('/profile')]
+#[Route('/api/profile')]
 class UserController extends AbstractController
 {
     #[Route('/show/{username}', methods: ['GET'], name: 'user_show')]
