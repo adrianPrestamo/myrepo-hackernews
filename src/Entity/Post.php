@@ -81,6 +81,7 @@ class Post
     private Collection $tags;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Url]
     private ?string $link = null;
 
     #[ORM\Column(length: 255)]

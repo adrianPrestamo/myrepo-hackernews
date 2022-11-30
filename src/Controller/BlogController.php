@@ -19,9 +19,11 @@ use App\Form\PostType;
 use App\Repository\CommentRepository;
 use App\Repository\PostRepository;
 use App\Repository\TagRepository;
+use App\Repository\UserRepository;
 use App\Security\PostVoter;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use http\Message;
 use PHPUnit\Exception;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -34,6 +36,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * Controller used to manage blog contents in the public part of the site.
@@ -146,50 +150,51 @@ class BlogController extends AbstractController
      * to constraint the HTTP methods each controller responds to (by default
      * it responds to all methods).
      */
-    #[Route('/post/new', methods: ['GET', 'POST'], name: 'post_new')]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function new(Request $request, EntityManagerInterface $entityManager, PostRepository $postRepository): Response
+    #[Route('/posts', methods: ['POST'], name: 'post_new')]
+    //#[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function new(Request $request, EntityManagerInterface $entityManager, PostRepository $postRepository, UserRepository $userRepository, ValidatorInterface $validator, SerializerInterface $serializer): JsonResponse
     {
         $post = new Post();
-        $post->setAuthor($this->getUser());
+        $requestContentJson = json_decode($request->getContent());
 
-        // See https://symfony.com/doc/current/form/multiple_buttons.html
-        $form = $this->createForm(PostType::class, $post)
-            ->add('saveAndCreateNew', SubmitType::class);
-        $form->handleRequest($request);
+        $trimmed = trim($requestContentJson->title);
+        $trimmed = strtolower($trimmed);
+        $slug = str_replace(' ', '-', $trimmed);
 
-        if($post->getLink()){
+        $post->setContent($requestContentJson->content);
+        $post->setSlug($slug);
+        $post->setLink($requestContentJson->link);
+        $post->setTitle($requestContentJson->title);
+
+        $author = $userRepository->findOneBy(["id" => $requestContentJson->author_id]);
+        $post->setAuthor($author);
+
+        $response = new JsonResponse();
+
+        if($post->getLink())
             $post->setType("url");
-
-            $exsistingPost = $postRepository->findOneBy(['link' => $post->getLink()]);
-
-            if($exsistingPost){
-                //dd($exsistingPost);
-                //return $this->redirectToRoute('blog_post');
-                return $this->redirectToRoute('blog_post', ['slug' => $exsistingPost->getSlug()]);
-            }
-
-        }
-        else{
+        else
             $post->setType("ask");
+
+        $errors = $validator->validate($post);
+
+        $response = new JsonResponse();
+        $response->setStatusCode(200);
+
+        if($errors->count() > 0){
+            $serializerErrors = $serializer->serialize($errors, 'json', ['json_encode_options' => JSON_UNESCAPED_SLASHES]);
+            $response->setStatusCode(422);
+            $response->setContent($serializerErrors);
         }
-
-        if ($form->isSubmitted() && $form->isValid()) {
-
+        else {
             $entityManager->persist($post);
             $entityManager->flush();
 
-            $this->addFlash('success', 'post.created_successfully');
-
-            if ($form->get('saveAndCreateNew')->isClicked()) {
-                return $this->redirectToRoute('bog');
-            }
-            return $this->redirectToRoute('blog_index');
+            $jsonPost = $post->toJson();
+            $response->setContent(json_encode($jsonPost, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $response->setStatusCode(200);
         }
-        return $this->render('admin/blog/new.html.twig', [
-            'post' => $post,
-            'form' => $form->createView(),
-        ]);
+        return $response;
     }
 
     /**
