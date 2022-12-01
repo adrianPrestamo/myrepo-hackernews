@@ -1,0 +1,270 @@
+openapi: 3.0.0
+info:
+  title: 'Hackernews API'
+  description: 'Hackernews API that serves anyone. It has restricted area'
+  version: 1.0.0
+  
+servers:
+  - url: 'http://127.0.0.1:8000/'
+  - url: 'http://10.4.41.43:8003'
+  
+paths:
+  /api/posts/new:
+    get:
+      tags:
+        - Posts
+      operationId: get_blog_index_2
+      responses:
+        '200':
+          description: 'Returns the posts ordered by relevance'
+  /api/posts/ask:
+    get:
+      tags:
+        - Posts
+      operationId: get_blog_index_ask
+      responses:
+        '200':
+          description: 'Returns ask posts'
+  /api/posts/url:
+    get:
+      tags:
+        - Posts
+      operationId: get_blog_index_url
+      responses:
+        '200':
+          description: 'Returns url posts'
+  /api/posts/newest:
+    get:
+      tags:
+        - Posts
+      operationId: get_blog_newest_index
+      responses:
+        '200':
+          description: 'Returns all posts ordered by publication time'
+  /api/posts:
+    post:
+      tags:
+        - Posts
+      operationId: post_post_new
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  description: 'Post title'
+                  type: string
+                  example: 'ASK Hola!'
+                content:
+                  description: 'Post content'
+                  type: string
+                  example: 'Este es un post ask'
+                link:
+                  description: 'Post link (null if ask)'
+                  type: string
+                  example: null
+                published_at:
+                  description: 'Date Time to be published'
+                  type: string
+                  example: '10-11-2022 14:29:51'
+              type: object
+            example:
+              title: 'ASK HN: What is your name sir?'
+              content: 'This is a well refined post'
+              link: null
+              published_at: '10-11-2022 14:29:51'
+      responses:
+        default:
+          description: ''
+    delete:
+      tags:
+        - Posts
+      summary: 'Deletes a Post entity.'
+      operationId: delete_admin_post_delete
+      responses:
+        default:
+          description: ''
+  '/api/posts/{slug}':
+    get:
+      tags:
+        - Posts
+      operationId: get_blog_post
+      parameters:
+        -
+          name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: ''
+  '/api/posts/{slug}/vote':
+    get:
+      tags:
+        - Posts
+      operationId: get_vote_post
+      parameters:
+        -
+          name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: ''
+  /api/search:
+    get:
+      tags:
+        - Posts
+      operationId: get_blog_search
+      responses:
+        default:
+          description: ''
+  '/api/posts/{postSlug}/comments':
+    post:
+      tags:
+        - Comments
+      operationId: post_comment_new
+      parameters:
+        -
+          name: postSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                content:
+                  description: 'Comment content'
+                  type: string
+                  example: 'This is a comment!'
+              type: object
+            example:
+              content: 'This is a comment!'
+      responses:
+        default:
+          description: ''
+  '/api/comments/{id}':
+    post:
+      tags:
+        - Comments
+      operationId: post_reply_new
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                content:
+                  description: 'Reply to comment content'
+                  type: string
+                  example: 'This is a reply!'
+              type: object
+            example:
+              content: 'this is a reply to a comment!'
+      responses:
+        default:
+          description: ''
+  /api/tokens:
+    post:
+      tags:
+        - Tokens
+      operationId: post_login-check
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {  }
+            example:
+              username: holla
+              password: '123456'
+      responses:
+        default:
+          description: ''
+  '/api/users/{username}':
+    get:
+      tags:
+        - Users
+      operationId: get_user_show
+      parameters:
+        -
+          name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: ''
+  '/api/users/{id}':
+    put:
+      tags:
+        - Users
+      operationId: put_user_edit
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                about:
+                  description: 'About user field'
+                  type: string
+                  example: 'This is me!'
+                fullName:
+                  description: 'User full name'
+                  type: string
+                  example: 'Holla Addios'
+              type: object
+            example:
+              about: 'My name is holla!'
+              fullName: 'Holla y addios'
+      responses:
+        default:
+          description: ''
+  '/api/users/{userId}/comments':
+    get:
+      tags:
+        - Users
+      operationId: get_comment_index
+      parameters:
+        -
+          name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: ''
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      bearerFormat: JWT
+      scheme: bearer
+security:
+  -
+    Bearer: []
+
