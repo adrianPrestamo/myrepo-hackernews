@@ -75,7 +75,9 @@ class UserController extends AbstractController
      *         example={
      *           "about": "My name is holla!",
      *           "fullName": "Holla y addios"
-     *           }
+     *           },
+     *           @OAA\Property(property="about", description="About user field", type="string", example="This is me!"),
+     *           @OAA\Property(property="fullName", description="User full name", type="string", example="Holla Addios"),
      *     )
      * )
      * */
@@ -108,26 +110,26 @@ class UserController extends AbstractController
         return $response;
     }
 
-    #[Route('', methods: ['POST'], name: 'user_change_password')]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function changePassword(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
-    {
-        $user = $this->getUser();
-
-        $form = $this->createForm(ChangePasswordType::class);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $user->setPassword($passwordHasher->hashPassword($user, $form->get('newPassword')->getData()));
-            $entityManager->flush();
-
-            return $this->redirectToRoute('security_logout');
-        }
-
-        return $this->render('user/change_password.html.twig', [
-            'form' => $form->createView(),
-        ]);
-    }
+//    #[Route('', methods: ['PUT'], name: 'user_change_password')]
+//    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+//    public function changePassword(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
+//    {
+//        $user = $this->getUser();
+//
+//        $form = $this->createForm(ChangePasswordType::class);
+//        $form->handleRequest($request);
+//
+//        if ($form->isSubmitted() && $form->isValid()) {
+//            $user->setPassword($passwordHasher->hashPassword($user, $form->get('newPassword')->getData()));
+//            $entityManager->flush();
+//
+//            return $this->redirectToRoute('security_logout');
+//        }
+//
+//        return $this->render('user/change_password.html.twig', [
+//            'form' => $form->createView(),
+//        ]);
+//    }
 
     #[Route('/{userId}/comments', methods: ['GET'], name: 'comment_index')]
     public function index(CommentRepository $comments): JsonResponse

@@ -53,7 +53,7 @@ use OpenApi\Attributes as OA;
 class BlogController extends AbstractController
 {
 
-    #[OA\Parameter(parameter: 'tag_in_query', name: 'tag', in: 'query', description: 'The field used to filter by tag', schema: new OA\Schema(type: 'string'))]
+    //#[OA\Parameter(parameter: 'tag_in_query', name: 'tag', in: 'query', description: 'The field used to filter by tag', schema: new OA\Schema(type: 'string'))]
     #[OA\Response(
         response: 200,
         description: 'Returns the posts ordered by relevance'
@@ -78,7 +78,7 @@ class BlogController extends AbstractController
         return $response;
     }
 
-    #[OA\Parameter(parameter: 'tag_in_query', name: 'tag', in: 'query', description: 'The field used to filter by tag', schema: new OA\Schema(type: 'string'))]
+//    #[OA\Parameter(parameter: 'tag_in_query', name: 'tag', in: 'query', description: 'The field used to filter by tag', schema: new OA\Schema(type: 'string'))]
     #[OA\Response(
         response: 200,
         description: 'Returns ask posts'
@@ -108,7 +108,7 @@ class BlogController extends AbstractController
         return $response;
     }
 
-    #[OA\Parameter(parameter: 'tag_in_query', name: 'tag', in: 'query', description: 'The field used to filter by tag', schema: new OA\Schema(type: 'string'))]
+//    #[OA\Parameter(parameter: 'tag_in_query', name: 'tag', in: 'query', description: 'The field used to filter by tag', schema: new OA\Schema(type: 'string'))]
     #[OA\Response(
         response: 200,
         description: 'Returns url posts'
@@ -134,7 +134,7 @@ class BlogController extends AbstractController
         return $response;
     }
 
-    #[OA\Parameter(parameter: 'tag_in_query', name: 'tag', in: 'query', description: 'The field used to filter by tag', schema: new OA\Schema(type: 'string'))]
+    //#[OA\Parameter(parameter: 'tag_in_query', name: 'tag', in: 'query', description: 'The field used to filter by tag', schema: new OA\Schema(type: 'string'))]
     #[OA\Response(
         response: 200,
         description: 'Returns all posts ordered by publication time'
@@ -187,22 +187,24 @@ class BlogController extends AbstractController
         //]);
     }
 
-    /**
-     * Creates a new Post entity.
-     * NOTE: Creates a new Post entity.
-     */
+
     #[Route('/posts', methods: ['POST'], name: 'post_new')]
+
     /**
+     *
      * @OAA\RequestBody(
      *     required=true,
      *     @OAA\JsonContent(
      *         example={
-     *           "author_id": 5,
      *           "title": "ASK HN: What is your name sir?",
      *           "content": "This is a well refined post",
      *           "link": null,
      *           "published_at": "10-11-2022 14:29:51"
-     *           }
+     *           },
+     *           @OAA\Property(property="title", description="Post title", type="string", example="ASK Hola!"),
+     *           @OAA\Property(property="content", description="Post content", type="string", example="Este es un post ask"),
+     *           @OAA\Property(property="link", description="Post link (null if ask)", type="string", example=null),
+     *           @OAA\Property(property="published_at", description="Date Time to be published", type="string", example="10-11-2022 14:29:51"),
      *     )
      * )
      * */
@@ -332,8 +334,6 @@ class BlogController extends AbstractController
     }
 
     #[Route('/search', methods: ['GET'], name: 'blog_search')]
-    #[OA\Parameter(parameter: 'q_in_query', name: 'q', in: 'query', description: 'The field used search', schema: new OA\Schema(type: 'string'))]
-    #[OA\Parameter(parameter: 'l_in_query', name: 'l', in: 'query', description: 'The field used search', schema: new OA\Schema(type: 'string'))]
     public function search(Request $request, PostRepository $posts): Response
     {
         $query = $request->query->get('q', '');
