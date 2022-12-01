@@ -38,7 +38,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-//use OpenApi\Annotations as OA;
+use OpenApi\Annotations as OAA;
 use OpenApi\Attributes as OA;
 /**
  * Controller used to manage blog contents in the public part of the site.
@@ -191,8 +191,22 @@ class BlogController extends AbstractController
      * NOTE: Creates a new Post entity.
      */
     #[Route('/posts', methods: ['POST'], name: 'post_new')]
+    /**
+     * @OAA\RequestBody(
+     *     required=true,
+     *     @OAA\JsonContent(
+     *         example={
+     *           "author_id": 5,
+     *           "title": "ASK HN: What is your name sir?",
+     *           "content": "This is a well refined post",
+     *           "link": null,
+     *           "published_at": "10-11-2022 14:29:51"
+     *           }
+     *     )
+     * )
+     * */
     //#[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function new(Request $request, EntityManagerInterface $entityManager, PostRepository $postRepository, UserRepository $userRepository, ValidatorInterface $validator, SerializerInterface $serializer): JsonResponse
+    public function new(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer): JsonResponse
     {
         $post = new Post();
         $requestContentJson = json_decode($request->getContent());
@@ -205,9 +219,7 @@ class BlogController extends AbstractController
         $post->setSlug($slug);
         $post->setLink($requestContentJson->link);
         $post->setTitle($requestContentJson->title);
-
-        $author = $userRepository->findOneBy(["id" => $requestContentJson->author_id]);
-        $post->setAuthor($author);
+        $post->setAuthor($this->getUser());
 
         $response = new JsonResponse();
 

@@ -11,12 +11,17 @@
 
 namespace App\Controller;
 
+use Doctrine\ORM\EntityManager;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
+use OpenApi\Attributes as OA;
+use OpenApi\Annotations as OAA;
 
 /**
  * Controller used to manage the application security.
@@ -25,11 +30,29 @@ use Symfony\Component\Security\Http\Util\TargetPathTrait;
  * @author Ryan Weaver <weaverryan@gmail.com>
  * @author Javier Eguiluz <javier.eguiluz@gmail.com>
  */
+//#[Route('/api')]
 class SecurityController extends AbstractController
 {
     use TargetPathTrait;
+    #[OA\Tag(name: 'Tokens')]
+    /**
+     * @Route("/api/tokens", name="login-check", methods={"POST"})
+     * @OAA\RequestBody(
+     *     required=true,
+     *     @OAA\JsonContent(
+     *         example={
+     *           "username": "holla",
+     *           "password": "123456",
+     *           }
+     *     )
+     * )
+     */
+    public function getTokenUser()
+    {
+        return;
+    }
 
-    #[Route('/login', name: 'security_login')]
+    #[Route('/old_login', name: 'security_login')]
     public function login(Request $request, AuthenticationUtils $helper): Response
     {
         // if user is already logged in, don't display the login page again
@@ -57,7 +80,7 @@ class SecurityController extends AbstractController
      * But, this will never be executed. Symfony will intercept this first
      * and handle the logout automatically. See logout in config/packages/security.yaml
      */
-    #[Route('/logout', name: 'security_logout')]
+    #[Route('/old_logout', name: 'security_logout')]
     public function logout(): void
     {
         throw new \Exception('This should never be reached!');
