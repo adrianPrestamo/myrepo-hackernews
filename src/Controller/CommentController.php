@@ -58,6 +58,16 @@ class CommentController extends AbstractController
 
     #[Route('/comments/{id}', methods: ['POST'], name: 'reply_new')]
     #[OA\Tag(name: 'Comments')]
+    /**
+     * @OAA\RequestBody(
+     *     required=true,
+     *     @OAA\JsonContent(
+     *         example={
+     *           "content": "this is a reply to a comment!"
+     *           }
+     *     )
+     * )
+     * */
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
 //    #[ParamConverter('parentComment', options: ['mapping' => ['id' => 'id']])]
     public function replyNew(Request $request, Comment $parentComment, EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
