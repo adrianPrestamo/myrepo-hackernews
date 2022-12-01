@@ -58,44 +58,34 @@ class CommentController extends AbstractController
 
     #[Route('/comments/{id}', methods: ['POST'], name: 'reply_new')]
     #[OA\Tag(name: 'Comments')]
+    /**
+     * @OAA\RequestBody(
+     *     required=true,
+     *     @OAA\JsonContent(
+     *         example={
+     *           "content": "this is a reply to a comment!"
+     *           }
+     *     )
+     * )
+     * */
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function replyNew(Request $request, Comment $parentComment, EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager): Response
+//    #[ParamConverter('parentComment', options: ['mapping' => ['id' => 'id']])]
+    public function replyNew(Request $request, Comment $parentComment, EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
     {
         $comment = new Comment();
+        $comment->setContent(json_decode($request->getContent())->content);
         $comment->setAuthor($this->getUser());
         $comment->setPost($parentComment->getPost());
-
-        $form = $this->createForm(CommentType::class, $comment);
-        $form->handleRequest($request);
 
         $parentComment->addReply($comment);
 
         $entityManager->persist($comment);
         $entityManager->flush();
-        if ($form->isSubmitted() && $form->isValid()) {
-//            $entityManager->persist($comment);
-//            $entityManager->flush();
 
-            // When an event is dispatched, Symfony notifies it to all the listeners
-            // and subscribers registered to it. Listeners can modify the information
-            // passed in the event and they can even modify the execution flow, so
-            // there's no guarantee that the rest of this controller will be executed.
-            // See https://symfony.com/doc/current/components/event_dispatcher.html
-            try{
-                $eventDispatcher->dispatch(new CommentCreatedEvent($comment));
+        $response = new JsonResponse();
+        $response->setStatusCode(200);
+        $response->setContent($serializer->serialize($comment->toJson(),'json'));
 
-            }
-            catch(Exception $e){
-
-            }
-
-            return $this->redirectToRoute('blog_post', ['slug' => $parentComment->getPost()->getSlug()]);
-        }
-
-        return $this->render('blog/comment_form_error.html.twig', [
-            'post' => $parentComment->getPost(),
-            'form' => $form->createView(),
-        ]);
+        return $response;
     }
-
 }
