@@ -24,17 +24,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use OpenApi\Attributes as OA;
 
 /**
  * Controller used to manage current user.
  *
  * @author Romain Monteil <monteil.romain@gmail.com>
  */
-#[Route('/api/profile')]
+#[Route('/api/users')]
+#[OA\Tag(name: 'Users')]
 class UserController extends AbstractController
 {
-    #[Route('/show/{username}', methods: ['GET'], name: 'user_show')]
-//    #[ParamConverter('user', options: ['mapping' => ['username' => 'username']])]
+    #[Route('/{username}', methods: ['GET'], name: 'user_show')]
     public function show(Request $request, UserRepository $userRepository, PostRepository $postRepository, CommentRepository $commentRepository, EntityManagerInterface $entityManager): JsonResponse
     {
 
@@ -59,7 +60,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/edit', methods: ['GET', 'POST'], name: 'user_edit')]
+    #[Route('/{id}', methods: ['PUT'], name: 'user_edit')]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function edit(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -82,7 +83,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/change-password', methods: ['GET', 'POST'], name: 'user_change_password')]
+    #[Route('', methods: ['POST'], name: 'user_change_password')]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function changePassword(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
     {
@@ -102,4 +103,15 @@ class UserController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
+    #[Route('/{userId}/comments', methods: ['GET'], name: 'comment_index')]
+    public function index(CommentRepository $comments): JsonResponse
+    {
+
+        $test = $comments->findByPost($this->getUser());
+        dd($test);
+
+        return $this->redirectTo('blog_index');
+    }
+
 }

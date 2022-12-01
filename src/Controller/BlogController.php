@@ -38,36 +38,60 @@ use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-
+//use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 /**
  * Controller used to manage blog contents in the public part of the site.
  *
  * @author Ryan Weaver <weaverryan@gmail.com>
  * @author Javier Eguiluz <javier.eguiluz@gmail.com>
  */
+
 #[Route('/api')]
+#[OA\Tag(name: 'Posts')]
 class BlogController extends AbstractController
 {
-    /**
-     * NOTE: For standard formats, Symfony will also automatically choose the best
-     * Content-Type header for the response.
-     *
-     * See https://symfony.com/doc/current/routing.html#special-parameters
-     */
-    #[Route('/new', defaults: ['page' => '1', '_format' => 'html'], methods: ['GET'], name: 'blog_index_2')]
-    public function index(Request $request, int $page, string $_format, PostRepository $posts, TagRepository $tags): JsonResponse
+
+    #[OA\Parameter(parameter: 'tag_in_query', name: 'tag', in: 'query', description: 'The field used to filter by tag', schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Returns the posts ordered by relevance'
+    )]
+    #[Route('/posts/new', methods: ['GET'], name: 'blog_index_2')]
+    public function index(Request $request, PostRepository $posts, TagRepository $tags): JsonResponse
+    {
+        $tag = null;
+        if ($request->query->has('tag')) {
+            $tag = $tags->findOneBy(['name' => $request->query->get('tag')]);
+        }
+        $latestPosts = $posts->findNewestAll($tag);
+
+        $postsJson = [];
+        foreach ($latestPosts as $post){
+            $postsJson[] = $post->toJson();
+        }
+        $response = new JsonResponse();
+        $response->setStatusCode(200);
+        $response->setContent(json_encode($postsJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        return $response;
+    }
+
+    #[OA\Parameter(parameter: 'tag_in_query', name: 'tag', in: 'query', description: 'The field used to filter by tag', schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Returns ask posts'
+    )]
+    #[Route('/posts/ask', methods: ['GET'], name: 'blog_index_ask')]
+    public function askPosts(Request $request, PostRepository $posts, TagRepository $tags): JsonResponse
     {
         $tag = null;
         //dd($request->query);
         if ($request->query->has('tag')) {
             $tag = $tags->findOneBy(['name' => $request->query->get('tag')]);
         }
-        $latestPosts = null;
 
-        if(!$latestPosts){
-            $latestPosts = $posts->findNewestAll($tag);
-        }
-
+        $latestPosts = $posts->findByTypeAll($tag, 'ask');
         // Every template name also has two extensions that specify the format and
         // engine for that template.
         // See https://symfony.com/doc/current/templates.html#template-naming
@@ -81,15 +105,41 @@ class BlogController extends AbstractController
         $response->setContent(json_encode($postsJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
         return $response;
-
-        return $this->render('blog/index.'.$_format.'.twig', [
-            'paginator' => $latestPosts,
-            'tagName' => $tag?->getName(),
-        ]);
     }
 
-    #[Route('/newest', defaults: ['page' => '1', '_format' => 'html'], methods: ['GET'], name: 'blog_newest_index')]
-    public function newestPosts(Request $request, int $page, string $_format, PostRepository $posts, TagRepository $tags): JsonResponse
+    #[OA\Parameter(parameter: 'tag_in_query', name: 'tag', in: 'query', description: 'The field used to filter by tag', schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Returns url posts'
+    )]
+    #[Route('/posts/url', methods: ['GET'], name: 'blog_index_url')]
+    public function urlPosts(Request $request, PostRepository $posts, TagRepository $tags): JsonResponse
+    {
+        $tag = null;
+        //dd($request->query);
+        if ($request->query->has('tag')) {
+            $tag = $tags->findOneBy(['name' => $request->query->get('tag')]);
+        }
+
+        $latestPosts = $posts->findByTypeAll($tag, 'url');
+        $postsJson = [];
+        foreach ($latestPosts as $post){
+            $postsJson[] = $post->toJson();
+        }
+        $response = new JsonResponse();
+        $response->setStatusCode(200);
+        $response->setContent(json_encode($postsJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        return $response;
+    }
+
+    #[OA\Parameter(parameter: 'tag_in_query', name: 'tag', in: 'query', description: 'The field used to filter by tag', schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(
+        response: 200,
+        description: 'Returns all posts ordered by publication time'
+    )]
+    #[Route('/posts/newest', methods: ['GET'], name: 'blog_newest_index')]
+    public function newestPosts(Request $request, PostRepository $posts, TagRepository $tags): JsonResponse
     {
         $tag = null;
 
@@ -138,10 +188,7 @@ class BlogController extends AbstractController
 
     /**
      * Creates a new Post entity.
-     *
-     * NOTE: the Method annotation is optional, but it's a recommended practice
-     * to constraint the HTTP methods each controller responds to (by default
-     * it responds to all methods).
+     * NOTE: Creates a new Post entity.
      */
     #[Route('/posts', methods: ['POST'], name: 'post_new')]
     //#[IsGranted('IS_AUTHENTICATED_FULLY')]
@@ -190,13 +237,6 @@ class BlogController extends AbstractController
         return $response;
     }
 
-    /**
-     * NOTE: The $post controller argument is automatically injected by Symfony
-     * after performing a database query looking for a Post with the 'slug'
-     * value given in the route.
-     *
-     * See https://symfony.com/doc/current/bundles/SensioFrameworkExtraBundle/annotations/converters.html
-     */
     #[Route('/posts/{slug}', methods: ['GET'], name: 'blog_post')]
     public function postShow(Post $post, CommentRepository $commentRepository): JsonResponse
     {
@@ -238,100 +278,6 @@ class BlogController extends AbstractController
     }
 
     /**
-     * NOTE: The ParamConverter mapping is required because the route parameter
-     * (postSlug) doesn't match any of the Doctrine entity properties (slug).
-     *
-     * See https://symfony.com/doc/current/bundles/SensioFrameworkExtraBundle/annotations/converters.html#doctrine-converter
-     */
-    #[Route('/comment/{postSlug}/new', methods: ['POST'], name: 'comment_new')]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    #[ParamConverter('post', options: ['mapping' => ['postSlug' => 'slug']])]
-    public function commentNew(Request $request, Post $post, EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager): Response
-    {
-        $comment = new Comment();
-        $comment->setAuthor($this->getUser());
-        $post->addComment($comment);
-
-        $form = $this->createForm(CommentType::class, $comment);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($comment);
-            $entityManager->flush();
-
-            // When an event is dispatched, Symfony notifies it to all the listeners
-            // and subscribers registered to it. Listeners can modify the information
-            // passed in the event and they can even modify the execution flow, so
-            // there's no guarantee that the rest of this controller will be executed.
-            // See https://symfony.com/doc/current/components/event_dispatcher.html
-            try{
-                $eventDispatcher->dispatch(new CommentCreatedEvent($comment));
-
-            }
-            catch(Exception $e){
-
-            }
-
-            return $this->redirectToRoute('blog_post', ['slug' => $post->getSlug()]);
-        }
-
-        return $this->render('blog/comment_form_error.html.twig', [
-            'post' => $post,
-            'form' => $form->createView(),
-        ]);
-    }
-
-    /**
-     * NOTE: The ParamConverter mapping is required because the route parameter
-     * (postSlug) doesn't match any of the Doctrine entity properties (slug).
-     *
-     * See https://symfony.com/doc/current/bundles/SensioFrameworkExtraBundle/annotations/converters.html#doctrine-converter
-     */
-    #[Route('/comment/{id}', methods: ['POST'], name: 'reply_new')]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
-//    #[ParamConverter('parentComment', options: ['mapping' => ['id' => 'id']])]
-    public function replyNew(Request $request, Comment $parentComment, EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager): Response
-    {
-        $comment = new Comment();
-        $comment->setAuthor($this->getUser());
-        $comment->setPost($parentComment->getPost());
-
-
-
-        $form = $this->createForm(CommentType::class, $comment);
-        $form->handleRequest($request);
-
-        $parentComment->addReply($comment);
-
-        $entityManager->persist($comment);
-        $entityManager->flush();
-        if ($form->isSubmitted() && $form->isValid()) {
-//            $entityManager->persist($comment);
-//            $entityManager->flush();
-
-            // When an event is dispatched, Symfony notifies it to all the listeners
-            // and subscribers registered to it. Listeners can modify the information
-            // passed in the event and they can even modify the execution flow, so
-            // there's no guarantee that the rest of this controller will be executed.
-            // See https://symfony.com/doc/current/components/event_dispatcher.html
-            try{
-                $eventDispatcher->dispatch(new CommentCreatedEvent($comment));
-
-            }
-            catch(Exception $e){
-
-            }
-
-            return $this->redirectToRoute('blog_post', ['slug' => $parentComment->getPost()->getSlug()]);
-        }
-
-        return $this->render('blog/comment_form_error.html.twig', [
-            'post' => $parentComment->getPost(),
-            'form' => $form->createView(),
-        ]);
-    }
-
-    /**
      * This controller is called directly via the render() function in the
      * blog/post_show.html.twig template. That's why it's not needed to define
      * a route name for it.
@@ -357,7 +303,10 @@ class BlogController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
     #[Route('/search', methods: ['GET'], name: 'blog_search')]
+    #[OA\Parameter(parameter: 'q_in_query', name: 'q', in: 'query', description: 'The field used search', schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(parameter: 'l_in_query', name: 'l', in: 'query', description: 'The field used search', schema: new OA\Schema(type: 'string'))]
     public function search(Request $request, PostRepository $posts): Response
     {
         $query = $request->query->get('q', '');
@@ -383,48 +332,11 @@ class BlogController extends AbstractController
         return $this->json($results);
     }
 
-    /**
-     * Finds and displays a Post entity.
-     */
-    #[Route('/{id<\d+>}', methods: ['GET'], name: 'admin_post_show')]
-    public function show(Post $post): Response
-    {
-        // This security check can also be performed
-        // using a PHP attribute: #[IsGranted('show', subject: 'post', message: 'Posts can only be shown to their authors.')]
-        $this->denyAccessUnlessGranted(PostVoter::SHOW, $post, 'Posts can only be shown to their authors.');
-
-        return $this->render('admin/blog/show.html.twig', [
-            'post' => $post,
-        ]);
-    }
-
-    /**
-     * Displays a form to edit an existing Post entity.
-     */
-    #[Route('/{id<\d+>}/edit', methods: ['GET', 'POST'], name: 'admin_post_edit')]
-    #[IsGranted('edit', subject: 'post', message: 'Posts can only be edited by their authors.')]
-    public function edit(Request $request, Post $post, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(PostType::class, $post);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-            $this->addFlash('success', 'post.updated_successfully');
-
-            return $this->redirectToRoute('admin_post_edit', ['id' => $post->getId()]);
-        }
-
-        return $this->render('admin/blog/edit.html.twig', [
-            'post' => $post,
-            'form' => $form->createView(),
-        ]);
-    }
 
     /**
      * Deletes a Post entity.
      */
-    #[Route('/{id}/delete', methods: ['POST'], name: 'admin_post_delete')]
+    #[Route('/posts', methods: ['DELETE'], name: 'admin_post_delete')]
     #[IsGranted('delete', subject: 'post')]
     public function delete(Request $request, Post $post, EntityManagerInterface $entityManager): Response
     {
