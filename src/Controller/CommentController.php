@@ -32,8 +32,9 @@ class CommentController extends AbstractController
      *     required=true,
      *     @OAA\JsonContent(
      *         example={
-     *           "content": "this is a comment!"
-     *           }
+     *           "content": "This is a comment!"
+     *           },
+     *          @OAA\Property(property="content", description="Comment content", type="string", example="This is a comment!"),
      *     )
      * )
      * */
@@ -65,7 +66,9 @@ class CommentController extends AbstractController
      *     @OAA\JsonContent(
      *         example={
      *           "content": "this is a reply to a comment!"
-     *           }
+     *           },
+     *           @OAA\Property(property="content", description="Reply to comment content", type="string", example="This is a reply!"),
+
      *     )
      * )
      * */

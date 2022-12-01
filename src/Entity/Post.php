@@ -61,7 +61,7 @@ class Post
 
     #[ORM\Column(type: 'text')]
     #[Assert\NotBlank(message: 'post.blank_content')]
-    #[Assert\Length(min: 10, minMessage: 'post.too_short_content')]
+    #[Assert\Length(min: 0, minMessage: 'post.too_short_content')]
     #[OA\Property(example: 'Im saluting everyone!')]
     private ?string $content = null;
 
