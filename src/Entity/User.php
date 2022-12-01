@@ -14,6 +14,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -51,6 +52,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Email]
     private ?string $email = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $about = null;
+
+    #[ORM\Column(type: "text", nullable: true)]
+    private ?string $jwtToken = null;
+
     #[ORM\Column(type: 'string')]
     private ?string $password = null;
 
@@ -59,9 +66,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\ManyToMany(targetEntity: Post::class, mappedBy: 'votes')]
     private Collection $votedPosts;
-
-    #[ORM\Column(type: "text", nullable: true)]
-    private ?string $jwtToken = null;
 
     public function __construct()
     {
@@ -205,10 +209,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function toJson(){
         $array['id'] = $this->id;
         $array['username'] = $this->username;
+        $array['fullName'] = $this->fullName;
         $array['email'] = $this->email;
+        $array['about'] = $this->about;
+        $array['jwtToken'] = $this->jwtToken;
         $array['voted_posts_slug'] = [];
 
-        foreach ($this->posts as $post){
+        foreach ($this->votedPosts as $post){
             $array['voted_posts_slug'][] = $post->getSlug();
         }
 
@@ -223,6 +230,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setJwtToken(?string $jwtToken): self
     {
         $this->jwtToken = $jwtToken;
+
+        return $this;
+    }
+
+    public function getAbout(): ?string
+    {
+        return $this->about;
+    }
+
+    public function setAbout(?string $about): self
+    {
+        $this->about = $about;
 
         return $this;
     }

@@ -25,6 +25,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use OpenApi\Attributes as OA;
+use OpenApi\Annotations as OAA;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * Controller used to manage current user.
@@ -49,38 +52,60 @@ class UserController extends AbstractController
         $userJson = $user->toJson();
         $userJson['posts'] = $postsJson;
 
+        $userComments = $commentRepository->findBy(['author' => $user]);
+        $userCommentsJson = [];
+        foreach ($userComments as $userComment){
+            $userCommentsJson[] = $userComment->toJson();
+        }
+
+        $userJson['comments'] = $userCommentsJson;
+
         $response = new JsonResponse();
         $response->setStatusCode(200);
         $response->setContent(json_encode($userJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
         return $response;
-
-        return $this->render('user/show.html.twig', [
-            'showUser' => $user
-        ]);
     }
 
     #[Route('/{id}', methods: ['PUT'], name: 'user_edit')]
+    /**
+     * @OAA\RequestBody(
+     *     required=true,
+     *     @OAA\JsonContent(
+     *         example={
+     *           "about": "My name is holla!",
+     *           "fullName": "Holla y addios"
+     *           }
+     *     )
+     * )
+     * */
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer): JsonResponse
     {
         $user = $this->getUser();
-
-        $form = $this->createForm(UserType::class, $user);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            $this->addFlash('success', 'user.updated_successfully');
-
-            return $this->redirectToRoute('user_edit');
+        $jsonContent = json_decode($request->getContent());
+        try{
+            $user->setAbout($jsonContent->about);
+            $user->setFullName($jsonContent->fullName);
         }
+        catch (\Exception $e){
 
-        return $this->render('user/edit.html.twig', [
-            'user' => $user,
-            'form' => $form->createView(),
-        ]);
+        }
+        $entityManager->persist($user);
+        $entityManager->flush();
+//        dd($user);
+        $response = new JsonResponse();
+
+        $errors = $validator->validate($user);
+        if($errors->count() > 0){
+            $serializerErrors = $serializer->serialize($errors, 'json', ['json_encode_options' => JSON_UNESCAPED_SLASHES]);
+            $response->setStatusCode(422);
+            $response->setContent($serializerErrors);
+        }
+        $response->setStatusCode(200);
+        $response->setContent($serializer->serialize($user->toJson(),'json'));
+
+        return $response;
     }
 
     #[Route('', methods: ['POST'], name: 'user_change_password')]

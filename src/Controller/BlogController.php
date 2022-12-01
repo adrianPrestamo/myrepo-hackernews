@@ -24,6 +24,7 @@ use App\Security\PostVoter;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use http\Message;
+use Nette\Utils\Json;
 use PHPUnit\Exception;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -209,7 +210,23 @@ class BlogController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer): JsonResponse
     {
         $post = new Post();
-        $requestContentJson = json_decode($request->getContent());
+        $requestContentJson = null;
+        try {
+            $requestContentJson = json_decode($request->getContent(), false, 512, JSON_THROW_ON_ERROR);
+        }
+        catch (\JsonException $jsonException){
+
+            $buildResponse['error']['type'] = "Invalid json";
+            $buildResponse['error']['message'] = $jsonException->getMessage();
+
+            $responseData = json_encode($buildResponse,  JSON_UNESCAPED_SLASHES);
+            $response = new JsonResponse();
+
+            $response->setStatusCode(400);
+            $response->setContent($responseData);
+
+            return $response;
+        }
 
         $trimmed = trim($requestContentJson->title);
         $trimmed = strtolower($trimmed);
@@ -220,8 +237,6 @@ class BlogController extends AbstractController
         $post->setLink($requestContentJson->link);
         $post->setTitle($requestContentJson->title);
         $post->setAuthor($this->getUser());
-
-        $response = new JsonResponse();
 
         if($post->getLink())
             $post->setType("url");
