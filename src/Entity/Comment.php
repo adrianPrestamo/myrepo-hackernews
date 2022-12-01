@@ -168,6 +168,7 @@ class Comment
         $array['content'] = $this->content;
         $array['post'] = $this->post->getId();
         $array['published_at'] = $this->publishedAt->format("d-m-Y H:i:s");
+        $array['parent_comment_id'] = $this->parentComment->getId();
 
         $array['replies'] = [];
 

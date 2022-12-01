@@ -210,7 +210,7 @@ class Post
         }
     }
 
-    public function removeTag(Tag $tag): voidlink
+    public function removeTag(Tag $tag): void
     {
         $this->tags->removeElement($tag);
     }
