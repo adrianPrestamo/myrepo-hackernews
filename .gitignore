@@ -26,3 +26,6 @@ yarn-error.log
 ###> lexik/jwt-authentication-bundle ###
 /config/jwt/*.pem
 ###< lexik/jwt-authentication-bundle ###
+/doc.yaml
+/migrations/Version20221201171709.php
+/migrations/Version20221201181406.php

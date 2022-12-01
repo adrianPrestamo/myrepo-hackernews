@@ -60,6 +60,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: Post::class, mappedBy: 'votes')]
     private Collection $votedPosts;
 
+    #[ORM\Column(type: "text", nullable: true)]
+    private ?string $jwtToken = null;
+
     public function __construct()
     {
         $this->votedPosts = new ArrayCollection();
@@ -210,5 +213,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $array;
+    }
+
+    public function getJwtToken(): ?string
+    {
+        return $this->jwtToken;
+    }
+
+    public function setJwtToken(?string $jwtToken): self
+    {
+        $this->jwtToken = $jwtToken;
+
+        return $this;
     }
 }
