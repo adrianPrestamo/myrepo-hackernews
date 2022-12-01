@@ -18,7 +18,8 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
-
+use Symfony\Component\Serializer\Annotation\Groups;
+use OpenApi\Attributes as OA;
 
 /**
  * Defines the properties of the Post entity to represent the blog posts.
@@ -40,13 +41,19 @@ class Post
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(["default", "create", "update"])]
+    #[OA\Property(example: 1)]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string')]
     #[Assert\NotBlank]
+    #[Groups(["default", "create", "update"])]
+    #[OA\Property(example: 'Hello World!')]
     private ?string $title = null;
 
     #[ORM\Column(type: 'string')]
+    #[Groups(["default", "create", "update"])]
+    #[OA\Property(example: 'hello-world')]
     private ?string $slug = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
@@ -55,13 +62,16 @@ class Post
     #[ORM\Column(type: 'text')]
     #[Assert\NotBlank(message: 'post.blank_content')]
     #[Assert\Length(min: 10, minMessage: 'post.too_short_content')]
+    #[OA\Property(example: 'Im saluting everyone!')]
     private ?string $content = null;
 
     #[ORM\Column(type: 'datetime')]
+    #[OA\Property(example: '21-12-2022 22:00:00')]
     private \DateTime $publishedAt;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[OA\Property(example: 1)]
     private ?User $author = null;
 
     /**
@@ -82,18 +92,22 @@ class Post
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\Url]
+    #[OA\Property(example: null)]
     private ?string $link = null;
 
     #[ORM\Column(length: 255)]
+    #[OA\Property(example: 'ask')]
     private ?string $type = 'ask';
 
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'votedPosts')]
     private Collection $votes;
 
     #[ORM\Column(type: 'json')]
+    #[OA\Property(example: [2,4])]
     private array $userIdVotes = [];
 
     #[ORM\Column(options: ["default" => 0])]
+    #[OA\Property(example: 2)]
     private ?int $numberOfVotes = 0;
 
     public function __construct()
