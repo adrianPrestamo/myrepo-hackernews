@@ -20,6 +20,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^2.10",
         "league/commonmark": "^2.1",
+        "lexik/jwt-authentication-bundle": "^2.16",
         "nelmio/api-doc-bundle": "^4.10",
         "sensio/framework-extra-bundle": "^6.2",
         "staabm/annotate-pull-request-from-checkstyle": "^1.8",
